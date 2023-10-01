@@ -37,7 +37,7 @@ class SigmaLinear(nn.Module):
         return l
 
     def forward(self, x):
-        W = self.gamma / self._get_sigma() * self.W
+        x = self.gamma / self._get_sigma() * x
         if self.b is not None:
             return x @ W.T + self.b
         else:
@@ -47,6 +47,7 @@ def sigmafy(module):
     for name, submodule in module.named_children():
         if isinstance(submodule, nn.Linear) and "embed" not in name and "lm_head" not in name:
             setattr(module, name, SigmaLinear(submodule))
+            del submodule
         else:
             sigmafy(submodule)
 

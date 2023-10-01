@@ -35,6 +35,7 @@ def quantembs(module):
     for name, submodule in module.named_children():
         if isinstance(submodule, nn.Embedding):
             setattr(module, name, QuantEmbedding(submodule))
+            del sumbodule
         else:
             quantembs(submodule)
 
