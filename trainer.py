@@ -36,7 +36,6 @@ class SlimTrainer():
         if self.wandb_entity is not None:
             wandb.init(entity=self.wandb_entity, project=self.wandb_name, name=self.wandb_name)
 
-        self.optim.init()
         loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, collate_fn=self.data_collater)
 
         total_batches = len(loader)
@@ -49,6 +48,9 @@ class SlimTrainer():
                 for k, v in batch:
                     batch[k] = v.cuda()
                 loss = self.model(**batch).loss
+
+                if 
+                self.optim.init()
 
                 current_lr = self.scheduler.get_lr()
 

@@ -21,10 +21,7 @@ class OverlapSGD(torch.optim.Optimizer):
 
     def init(self, loss):
         if self.pastnorm:
-            self.norm_sum = torch.tensor(0.0, requires_grad=False)
-            for p in model.parameters():
-                if p.requires_grad:
-                    self.norm_sum += p.grad.norm(2) ** 2
+            self._norm_sum = torch.tensor(0.0, requires_grad=False)
 
         for p in model.parameters():
             if p.requires_grad:
@@ -32,7 +29,10 @@ class OverlapSGD(torch.optim.Optimizer):
 
     def step(self, loss, lr):
         if self.pastnorm:
-            self._norm = (1 - self.norm_smooth)*self._norm + norm_smooth*torch.sqrt(self._norm_sum)
+            if self._norm == None:
+                self._norm = torch.sqrt(self._norm_sum)
+            else:
+                self._norm = (1 - self.norm_smooth)*self._norm + norm_smooth*torch.sqrt(self._norm_sum)
             self._norm_sum = torch.tensor(0.0, requires_grad=False)
         self.lr = lr
         loss.backward()
@@ -45,7 +45,8 @@ class OverlapSGD(torch.optim.Optimizer):
 
         if self.pastnorm:
             self._norm_sum += g.norm(2) ** 2
-            g /= norm
+            if norm != None:
+                g /= norm
 
         if self.norm_clip is not None:
             clip_val = self.norm_clip*norm
