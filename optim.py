@@ -52,9 +52,6 @@ class OverlapSGD(torch.optim.Optimizer):
             clip_val = self.norm_clip*norm
             g = torch.clamp(g, min=-clip_val, max=clip_val)
 
-        if self.decay is not None:
-            g += self.decay * p
-
         return g
 
     def hook(self, p):
@@ -67,6 +64,9 @@ class OverlapSGD(torch.optim.Optimizer):
         def grad_func(*_):
             with torch.no_grad():
                 g = self.grad_fn(p.grad)
+
+                if self.decay is not None:
+                    g += self.decay * p
 
                 p.data.add_(-self.lr * g)
                 p.grad = None
