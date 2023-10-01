@@ -15,7 +15,7 @@ class Serval(torch.optim.Optimizer):
 
     def init(self):
         for p in self.model.parameters():
-            p._m = torch.zeros_like(p, requires_grad=False, dtype=torch.bool, device='cpu')
+            #p._m = torch.zeros_like(p, requires_grad=False, dtype=torch.bool, device='cpu')
             if p.requires_grad:
                 self.hook(p)
 
@@ -34,8 +34,9 @@ class Serval(torch.optim.Optimizer):
                 g = p.grad.sign()
 
                 p.data.mul_(1 - self.lr * self.decay)
-                p.data.add_(-self.lr * torch.sign(p._m.to(g.device).bfloat16() + g))
-                p._m = g.to(m.device).bool()
+                #p.data.add_(-self.lr * torch.sign(p._m.to(g.device).bfloat16() + g))
+                p.data.add_(-self.lr * g)
+                #p._m = g.to(m.device).bool()
 
                 p.grad = None
             
