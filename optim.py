@@ -12,7 +12,6 @@ class OverlapSGD():
     pastnorm: bool = False
     norm_smooth: float = 0.3
     norm_clip: Optional[float] = None
-    normalize: bool = False
 
     _norm: Optional[torch.Tensor] = None
     _norm_sum: Optional[torch.Tensor] = None
@@ -43,10 +42,8 @@ class OverlapSGD():
             g = g.sign()
 
         if self.pastnorm:
+            self._norm_sum += g.norm(2) ** 2
             g /= norm
-
-        if self.normalize:
-            self._norm_sum += p.grad.norm(2) ** 2
 
         if self.norm_clip is not None:
             clip_val = self.norm_clip*norm
