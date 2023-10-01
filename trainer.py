@@ -62,7 +62,7 @@ class SlimTrainer():
 
                     self.scheduler.step()
 
-               if (batch_idx + 1) % self.report_steps == 0:
+                if (batch_idx + 1) % self.report_steps == 0:
                     if self.wandb_entity is not None:
                         wandb.log({'loss': loss.item()})
                         wandb.log({'epoch': epoch + batch_idx / total_batches})
