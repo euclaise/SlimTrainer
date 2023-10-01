@@ -6,6 +6,7 @@ from tqdm import trange
 from tqdm.contrib import tenumerate
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import LRScheduler
+from typing import Optional
 import wandb
 
 from .optim import OverlapSGD
