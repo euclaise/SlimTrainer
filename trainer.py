@@ -66,7 +66,7 @@ class SlimTrainer():
                         wandb.log({'loss': loss.item()})
                         wandb.log({'epoch': epoch + batch_idx / total_batches})
                         wandb.log({'step': epoch*total_batches*self.batch_size + batch_idx*self.batch_size})
-                        wandb.log({'learning_rate': current_lr})
+                        wandb.log({'learning_rate': self.scheduler.get_lr()})
 
             if hasattr(self.scheduler, "epoch_end"):
                 self.scheduler.epoch_end()
