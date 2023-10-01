@@ -34,7 +34,7 @@ class SlimTrainer():
 
     def train(self):
         if self.wandb_entity is not None:
-            wandb.init(entity=self.wandb_entity, project=self.wandb_name, name=self.wandb_name)
+            wandb.init(entity=self.wandb_entity, project=self.wandb_project, name=self.wandb_name)
 
         loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, collate_fn=self.data_collater)
 
