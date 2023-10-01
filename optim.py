@@ -1,4 +1,4 @@
-import torch
+ import torch
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -12,7 +12,7 @@ class OverlapSGD(torch.optim.Optimizer):
     pastnorm: bool = False
     norm_smooth: float = 0.3
     norm_clip: Optional[float] = None
-    param_groups: List = field(default_factory=lambda _:[{'lr': 0.01}])
+    param_groups: List = field(default_factory=lambda: [{'lr': 0.01}])
 
     _norm: Optional[torch.Tensor] = None
     _norm_sum: Optional[torch.Tensor] = None
