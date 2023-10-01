@@ -70,6 +70,7 @@ class OverlapSGD(torch.optim.Optimizer):
 
                 p.data.add_(-self.lr * g)
                 p.grad = None
+                return None
             
         acc_grad.register_hook(grad_func)
 
