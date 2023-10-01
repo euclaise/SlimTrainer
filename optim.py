@@ -23,7 +23,7 @@ class OverlapSGD(torch.optim.Optimizer):
         if self.pastnorm:
             self._norm_sum = torch.tensor(0.0, requires_grad=False)
 
-        for p in model.parameters():
+        for p in self.model.parameters():
             if p.requires_grad:
                 self.hook(p)
 
