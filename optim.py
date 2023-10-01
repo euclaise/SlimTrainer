@@ -2,6 +2,9 @@ import torch
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+class DummyOptimizer(torch.optim.Optimizer):
+    def __init__(self):
+        return
 # Somewhat based on https://gist.github.com/albanD/18c240bd2e09f9d93f5c4a0c9ccda39e and LOMO
 @dataclass
 class OverlapSGD():
