@@ -9,7 +9,7 @@ from typing import Optional
 import wandb
 
 from .optim import OverlapSGD
-from .optim import LRScheduler
+from .lr import LRScheduler
 
 @dataclass
 class SlimTrainer():
