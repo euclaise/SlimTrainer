@@ -66,7 +66,7 @@ class OverlapSGD(torch.optim.Optimizer):
 
         def grad_func(*_):
             with torch.no_grad():
-                g = grad_fn(p.grad)
+                g = self.grad_fn(p.grad)
 
                 p.data.add_(-self.lr * g)
                 p.grad = None
