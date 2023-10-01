@@ -24,13 +24,6 @@ class Serval(torch.optim.Optimizer):
     def step(self, loss, lr):
         self.lr = lr
         loss.backward()
-
-    def grad_fn(self, g):
-        if self.sign:
-            g = g.sign()
-
-        return g
-
     def hook(self, p):
         # Gradient accumulator function for p
         # Hook this instead of p, so we know that the hook is being called post-accumulation
@@ -40,13 +33,14 @@ class Serval(torch.optim.Optimizer):
 
         def grad_func(*_):
             with torch.no_grad():
+                g = p.grad
                 p.data.mul_(1 - self.lr * self.decay)
 
                 update = (p._exp_avg.bfloat16() / 127) * self.beta1 + g * (1 - beta1)
 
                 p.data.add_(-self.lr * torch.sign(update), inplace=True)
 
-                exp_avg_update = (torch.sign(grad)*(1 - beta2)*127).round().to(torch.int8)
+                exp_avg_update = (torch.sign(g)*(1 - beta2)*127).round().to(torch.int8)
                 p._exp_avg.data.mul(beta2).add_(exp_avg_update)
 
                 p.grad = None
