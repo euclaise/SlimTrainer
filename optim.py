@@ -29,7 +29,7 @@ class OverlapSGD(torch.optim.Optimizer):
 
     def step(self, loss, lr):
         if self.pastnorm:
-            if self._norm == None and self._norm_sum > 0.0:
+            if self._norm == None or self._norm_sum == 0.0:
                 self._norm = torch.sqrt(self._norm_sum)
             else:
                 self._norm = (1 - self.norm_smooth)*self._norm + self.norm_smooth*torch.sqrt(self._norm_sum)
