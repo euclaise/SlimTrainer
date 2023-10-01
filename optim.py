@@ -31,12 +31,11 @@ class Serval(torch.optim.Optimizer):
 
         def grad_func(*_):
             with torch.no_grad():
-                g = p.grad
+                g = p.grad.sign()
+
                 p.data.mul_(1 - self.lr * self.decay)
-
-                p.data.add_(-self.lr * torch.sign(p._m.bfloat16() + g.sign()))
-
-                p._m = g
+                p.data.add_(-self.lr * torch.sign(p._m.bfloat16() + g))
+                p._m = g.bool()
 
                 p.grad = None
             
