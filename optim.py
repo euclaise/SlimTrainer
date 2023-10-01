@@ -16,9 +16,6 @@ class Serval(torch.optim.Optimizer):
     _acc_grads: Optional[List] = field(default_factory=lambda: [])
 
     def init(self):
-        if self.pastnorm:
-            self._norm_sum = torch.tensor(0.0, requires_grad=False, device=self.model.device)
-
         for p in self.model.parameters():
             p._exp_avg = torch.tensor(0, requires_grad=False, device=self.model.device, dtype=torch.int8)
             if p.requires_grad:
