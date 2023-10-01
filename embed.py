@@ -3,7 +3,7 @@ from torch import nn
 from torch.nn import functional as F
 
 class QuantEmbedding(nn.Module):
-    def __init__(self, old_emb):
+    def __init__(self, old_emb: nn.Embedding):
         super().__init__()
 
         self.embedding_dim = old_emb.embedding_dim
@@ -20,7 +20,7 @@ class QuantEmbedding(nn.Module):
 
         self.scales[self.scales == 0] = 1e-8
 
-        self.weight = ((old_emb.weight - self.means) / self.scales).round().clamp(min=-128, max=128).to(torch.int8)
+        self.weight = ((old_emb.weight - self.means) / self.scales).round().clamp(min=-128, max=127).to(torch.int8)
 
         self.requires_grad = False
 
