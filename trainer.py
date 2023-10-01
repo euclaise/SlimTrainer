@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from typing import Optional
 import wandb
 
-from .optim import OverlapSGD
+from .optim import Serval
 from .lr import LRScheduler
 
 @dataclass
