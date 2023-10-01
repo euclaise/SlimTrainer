@@ -23,6 +23,8 @@ class SlimTrainer():
     wandb_entity: Optional[str]
     wandb_project: Optional[str]
     wandb_name: Optional[str]
+    grad_accum_steps: int = 1
+    report_steps: int = 1
 
     def _prepare_input(self, data):
         if isinstance(data, Mapping):
@@ -45,23 +47,26 @@ class SlimTrainer():
             if hasattr(self.scheduler, "epoch_init"):
                 self.scheduler.epoch_init()
 
+            accum_loss = 0.0
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
+
                 for k, v in batch.items():
                     batch[k] = v.cuda()
                 loss = self.model(**batch).loss
 
 
-                current_lr = self.scheduler.get_lr()
-
-                self.optim.step(loss, current_lr) # Backwards pass is mixed with optimization pass
+                if (batch_idx + 1) % self.grad_accum_steps == 0:
+                    current_lr = self.scheduler.get_lr()
+                    self.optim.step(loss, current_lr) # Backwards pass is mixed with optimization pass
 
                 self.scheduler.step()
 
-                if self.wandb_entity is not None:
-                    wandb.log({'loss': loss.item()})
-                    wandb.log({'epoch': epoch + batch_idx / total_batches})
-                    wandb.log({'step': epoch*total_batches*self.batch_size + batch_idx*self.batch_size})
-                    wandb.log({'learning_rate': current_lr})
+                if (batch_idx + 1) % self.report_steps == 0:
+                    if self.wandb_entity is not None:
+                        wandb.log({'loss': loss.item()})
+                        wandb.log({'epoch': epoch + batch_idx / total_batches})
+                        wandb.log({'step': epoch*total_batches*self.batch_size + batch_idx*self.batch_size})
+                        wandb.log({'learning_rate': current_lr})
 
             if hasattr(self.scheduler, "epoch_end"):
                 self.scheduler.epoch_end()
