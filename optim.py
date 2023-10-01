@@ -1,5 +1,5 @@
 import torch
-from dataclass import dataclass, field
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 # Somewhat based on https://gist.github.com/albanD/18c240bd2e09f9d93f5c4a0c9ccda39e and LOMO
