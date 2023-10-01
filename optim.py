@@ -2,12 +2,9 @@ import torch
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-class DummyOptimizer(torch.optim.Optimizer):
-    def __init__(self):
-        return
 # Somewhat based on https://gist.github.com/albanD/18c240bd2e09f9d93f5c4a0c9ccda39e and LOMO
 @dataclass
-class OverlapSGD():
+class OverlapSGD(torch.optim.Optimizer):
     model: torch.nn.Module
     lr: Optional[float] = None
     sign: bool = False
@@ -15,6 +12,7 @@ class OverlapSGD():
     pastnorm: bool = False
     norm_smooth: float = 0.3
     norm_clip: Optional[float] = None
+    param_groups: List = field(default_factory=lambda _:[{'lr': 0.01}])
 
     _norm: Optional[torch.Tensor] = None
     _norm_sum: Optional[torch.Tensor] = None
@@ -72,3 +70,8 @@ class OverlapSGD():
                 p.grad = None
             
         acc_grad.register_hook(grad_func)
+
+    def set_lr(self, new_lr):
+        self.lr = new_lr
+        for param_group in self.param_groups:
+            param_group['lr'] = new_lr
