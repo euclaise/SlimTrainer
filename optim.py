@@ -36,12 +36,12 @@ class Serval(torch.optim.Optimizer):
                 g = p.grad
                 p.data.mul_(1 - self.lr * self.decay)
 
-                update = (p._exp_avg.bfloat16() / 127) * self.beta1 + g * (1 - beta1)
+                update = (p._exp_avg.bfloat16() / 127) * self.beta1 + g * (1 - self.beta1)
 
                 p.data.add_(-self.lr * torch.sign(update), inplace=True)
 
-                exp_avg_update = (torch.sign(g)*(1 - beta2)*127).round().to(torch.int8)
-                p._exp_avg.data.mul(beta2).add_(exp_avg_update)
+                exp_avg_update = (torch.sign(g)*(1 - self.beta2)*127).round().to(torch.int8)
+                p._exp_avg.data.mul(self.beta2).add_(exp_avg_update)
 
                 p.grad = None
             
