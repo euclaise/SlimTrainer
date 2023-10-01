@@ -6,7 +6,7 @@ class SigmaLinear(nn.Module):
     def __init__(self, layer: nn.Linear, num_steps=4):
         super().__init__()
         self.b = nn.Parameter(layer.bias) if layer.bias != None else None
-        self.W = nn.Parameter(layer.weight)
+        self.W = nn.Parameter(layer.weight.T)
         self.num_steps = num_steps
 
         d, c = self.W.shape
@@ -30,7 +30,7 @@ class SigmaLinear(nn.Module):
 
     def to_linear(self):
         l = nn.Linear(self.W.shape[1], self.W.shape[0], bias=(self.b is not None))
-        l.weight.data = self.gamma / self._get_sigma() * self.W
+        l.weight.data = self.gamma / self._get_sigma() * self.W.T
         if self.b is not None:
             l.bias.data = self.b
 
@@ -39,9 +39,9 @@ class SigmaLinear(nn.Module):
     def forward(self, x):
         x = self.gamma / self._get_sigma() * x
         if self.b is not None:
-            return x @ W.T + self.b
+            return x @ self.W + self.b
         else:
-            return x @ W.T
+            return x @ self.W
 
 def sigmafy(module):
     for name, submodule in module.named_children():
