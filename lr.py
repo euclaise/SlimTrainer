@@ -21,9 +21,9 @@ class CosineDecayWithWarmup(LRScheduler):
 
     def get_lr(self):
         if self.steps < self.warmup_steps:
-            lr = self.max_lr * (current_step / self.warmup_steps)
+            lr = self.max_lr * (self.steps / self.warmup_steps)
         else:
-            remaining_steps = current_step - self.warmup_steps
+            remaining_steps = self.steps - self.warmup_steps
             total_cosine_steps = self.total_steps - self.warmup_steps
             cos_inner = (math.pi * remaining_steps) / total_cosine_steps
             lr = self.max_lr * (1 + math.cos(cos_inner)) / 2
