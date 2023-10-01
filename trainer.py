@@ -60,6 +60,7 @@ class SlimTrainer():
                 if (batch_idx + 1) % self.grad_accum_steps == 0:
                     current_lr = self.scheduler.get_lr()
                     self.optim.step(accum_loss, current_lr) # Backwards pass is mixed with optimization pass
+                    accum_loss = 0.0
 
                 self.scheduler.step()
 
