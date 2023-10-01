@@ -53,11 +53,13 @@ class SlimTrainer():
                 for k, v in batch.items():
                     batch[k] = v.cuda()
                 loss = self.model(**batch).loss
+                accum_loss += loss
+                loss = loss.detach()
 
 
                 if (batch_idx + 1) % self.grad_accum_steps == 0:
                     current_lr = self.scheduler.get_lr()
-                    self.optim.step(loss, current_lr) # Backwards pass is mixed with optimization pass
+                    self.optim.step(accum_loss, current_lr) # Backwards pass is mixed with optimization pass
 
                 self.scheduler.step()
 
