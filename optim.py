@@ -7,7 +7,7 @@ from typing import List, Optional
 class OverlapSGD():
     model: torch.nn.Module
     lr: Optional[float] = None
-    sign: bool: False
+    sign: bool = False
     decay: Optional[float] = 0.0
     pastnorm: bool = False
     norm_smooth: float = 0.3
