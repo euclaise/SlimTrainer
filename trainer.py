@@ -5,7 +5,7 @@ from transformers import PreTrainedModel
 from tqdm import trange
 from tqdm.contrib import tenumerate
 from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import LRScheduler
+from torch.optim.lr_scheduler import _LRScheduler
 from typing import Optional
 import wandb
 
@@ -19,7 +19,7 @@ class SlimTrainer():
     epochs: int
     data_collater: Callable
     batch_size: int
-    scheduler: LRScheduler
+    scheduler: _LRScheduler
     wandb_entity: Optional[str]
     wandb_project: Optional[str]
     wandb_name: Optional[str]
