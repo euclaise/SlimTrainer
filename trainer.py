@@ -47,27 +47,27 @@ class SlimTrainer():
             if hasattr(self.scheduler, "epoch_init"):
                 self.scheduler.epoch_init()
 
-            #accum_loss = 0.0
+            accum_loss = 0.0
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
                 for k, v in batch.items():
                     batch[k] = v.cuda()
                 loss = self.model(**batch).loss
-                #accum_loss += loss
-                #loss = loss.detach()
+                accum_loss += loss
+                loss = loss.detach()
 
 
-                #if (batch_idx + 1) % self.grad_accum_steps == 0:
-                self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
-                #accum_loss = 0.0
+                if (batch_idx + 1) % self.grad_accum_steps == 0:
+                    self.optim.step(accum_loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
+                    accum_loss = 0.0
 
-                self.scheduler.step()
+                    self.scheduler.step()
 
-                #if (batch_idx + 1) % self.report_steps == 0:
-                if self.wandb_entity is not None:
-                    wandb.log({'loss': loss.item()})
-                    wandb.log({'epoch': epoch + batch_idx / total_batches})
-                    wandb.log({'step': epoch*total_batches*self.batch_size + batch_idx*self.batch_size})
-                    wandb.log({'learning_rate': self.scheduler.get_lr()})
+               if (batch_idx + 1) % self.report_steps == 0:
+                    if self.wandb_entity is not None:
+                        wandb.log({'loss': loss.item()})
+                        wandb.log({'epoch': epoch + batch_idx / total_batches})
+                        wandb.log({'step': epoch*total_batches*self.batch_size + batch_idx*self.batch_size})
+                        wandb.log({'learning_rate': self.scheduler.get_lr()})
 
             if hasattr(self.scheduler, "epoch_end"):
                 self.scheduler.epoch_end()
