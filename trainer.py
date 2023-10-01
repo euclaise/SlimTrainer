@@ -20,9 +20,9 @@ class SlimTrainer():
     data_collater: Callable
     batch_size: int
     scheduler: LRScheduler
-    wandb_entity: Optional[string]
-    wandb_project: Optional[string]
-    wandb_name: Optional[string]
+    wandb_entity: Optional[str]
+    wandb_project: Optional[str]
+    wandb_name: Optional[str]
 
     def _prepare_input(self, data):
         if isinstance(data, Mapping):
