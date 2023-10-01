@@ -13,6 +13,7 @@ class OverlapSGD(torch.optim.Optimizer):
     norm_smooth: float = 0.3
     norm_clip: Optional[float] = None
     param_groups: List = field(default_factory=lambda: [{'lr': 0.01}])
+    defaults: List = field(default_factory=lambda: [])
 
     _norm: Optional[torch.Tensor] = None
     _norm_sum: Optional[torch.Tensor] = None
