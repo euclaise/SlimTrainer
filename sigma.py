@@ -45,7 +45,7 @@ class SigmaLinear(nn.Module):
 
 def sigmafy(module):
     for name, submodule in module.named_children():
-        if isinstance(submodule, nn.Linear):
+        if isinstance(submodule, nn.Linear) and "embed" not in name and "lm_head" not in name:
             setattr(module, name, SigmaLinear(submodule))
         else:
             sigmafy(submodule)
