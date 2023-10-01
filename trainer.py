@@ -4,7 +4,7 @@ from typing import Callable, Mapping
 from transformers import PreTrainedModel
 from tqdm import trange
 from tqdm.contrib import tenumerate
-from torch import DataLoader
+from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import LRScheduler
 import wandb
 
