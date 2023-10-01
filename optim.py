@@ -17,7 +17,7 @@ class OverlapSGD(torch.optim.Optimizer):
 
     _norm: Optional[torch.Tensor] = None
     _norm_sum: Optional[torch.Tensor] = None
-    _acc_grads: Optional[List] = None
+    _acc_grads: Optional[List] = field(default_factory=lambda: [])
 
     def init(self):
         if self.pastnorm:
