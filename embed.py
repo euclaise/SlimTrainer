@@ -9,9 +9,6 @@ class QuantEmbedding(nn.Module):
         self.embedding_dim = old_emb.embedding_dim
         self.num_embeddings = old_emb.num_embeddings
 
-        self.weight = nn.Parameter(torch.zeros_like(old_emb.weight).to(torch.int8), requires_grad=False)
-        self.scales = nn.Parameter(torch.zeros(self.num_embeddings), requires_grad=False)
-
         mins = old_emb.weight.min(dim=1).values.view(-1, 1)
         maxs = old_emb.weight.max(dim=1).values.view(-1, 1)
 
@@ -20,7 +17,7 @@ class QuantEmbedding(nn.Module):
 
         self.scales[self.scales == 0] = 1e-8
 
-        self.weight = ((old_emb.weight - self.means) / self.scales).round().clamp(min=-128, max=127).to(torch.int8)
+        self.weight = nn.Parameter(((old_emb.weight - self.means) / self.scales).round().clamp(min=-128, max=127).to(torch.int8), requires_grad=False)
 
         self.requires_grad = False
 
