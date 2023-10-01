@@ -17,7 +17,7 @@ class Serval(torch.optim.Optimizer):
 
     def init(self):
         for p in self.model.parameters():
-            p._exp_avg = torch.tensor(0, requires_grad=False, device=self.model.device, dtype=torch.int8)
+            p._exp_avg = torch.tensor(p.shape, requires_grad=False, device=self.model.device, dtype=torch.int8)
             if p.requires_grad:
                 self.hook(p)
 
