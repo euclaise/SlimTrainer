@@ -5,11 +5,11 @@ from transformers import PreTrainedModel
 from tqdm import trange
 from tqdm.contrib import tenumerate
 from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import _LRScheduler
 from typing import Optional
 import wandb
 
 from .optim import OverlapSGD
+from .optim import LRScheduler
 
 @dataclass
 class SlimTrainer():
@@ -19,7 +19,7 @@ class SlimTrainer():
     epochs: int
     data_collater: Callable
     batch_size: int
-    scheduler: _LRScheduler
+    scheduler: LRScheduler
     wandb_entity: Optional[str]
     wandb_project: Optional[str]
     wandb_name: Optional[str]
