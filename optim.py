@@ -30,8 +30,9 @@ class OverlapSGD():
                 self.hook(p)
 
     def step(self, loss, lr):
-        self._norm = (1 - self.norm_smooth)*self._norm + norm_smooth*torch.sqrt(self._norm_sum)
-        self._norm_sum = torch.tensor(0.0, requires_grad=False)
+        if self.pastnorm:
+            self._norm = (1 - self.norm_smooth)*self._norm + norm_smooth*torch.sqrt(self._norm_sum)
+            self._norm_sum = torch.tensor(0.0, requires_grad=False)
         self.lr = lr
         loss.backward()
 
