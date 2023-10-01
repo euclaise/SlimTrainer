@@ -39,9 +39,9 @@ class SigmaLinear(nn.Module):
     def forward(self, x):
         W = self.gamma / self._get_sigma() * self.W
         if self.b is not None:
-            return x @ W + self.b
+            return x @ W.T + self.b
         else:
-            return x @ W
+            return x @ W.T
 
 def sigmafy(module):
     for name, submodule in module.named_children():
@@ -56,3 +56,4 @@ def desigmafy(module):
             setattr(module, name, submodule.to_linear())
         else:
             desigmafy(submodule)
+
