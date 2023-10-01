@@ -5,7 +5,7 @@ from collections import defaultdict
 
 # Somewhat based on https://gist.github.com/albanD/18c240bd2e09f9d93f5c4a0c9ccda39e and LOMO
 @dataclass
-class OverlapLion(torch.optim.Optimizer):
+class Serval(torch.optim.Optimizer):
     model: torch.nn.Module
     lr: Optional[float] = None
     decay: Optional[float] = 0.0
@@ -45,10 +45,12 @@ class OverlapLion(torch.optim.Optimizer):
             with torch.no_grad():
                 p.data.mul_(1 - self.lr * self.decay)
 
-                update = p._exp_avg * self.beta1 + g * (1 - beta1)
+                update = (p._exp_avg.bfloat16() / 127) * self.beta1 + g * (1 - beta1)
 
                 p.data.add_(-self.lr * torch.sign(update), inplace=True)
-                p._exp_avg.data.mul(beta2).add_(grad, alpha=1 - beta2)
+
+                exp_avg_update = (torch.sign(grad)*(1 - beta2)*127).round().to(torch.int8)
+                p._exp_avg.data.mul(beta2).add_(exp_avg_update)
 
                 p.grad = None
             

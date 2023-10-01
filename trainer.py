@@ -14,7 +14,7 @@ from .lr import LRScheduler
 @dataclass
 class SlimTrainer():
     model: PreTrainedModel
-    optim: SlimLion
+    optim: Serval
     train_data: Dataset
     epochs: int
     data_collater: Callable
