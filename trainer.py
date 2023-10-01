@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from optim import OverlapSGD
 from datasets import Dataset
 from typing import Callable, Mapping
 from transformers import PreTrainedModel
@@ -8,6 +7,8 @@ from tqdm.contrib import tenumerate
 from torch import DataLoader
 from torch.optim.lr_scheduler import LRScheduler
 import wandb
+
+from .optim import OverlapSGD
 
 @dataclass
 class SlimTrainer():
