@@ -32,7 +32,7 @@ class OverlapSGD(torch.optim.Optimizer):
             if self._norm == None:
                 self._norm = torch.sqrt(self._norm_sum)
             else:
-                self._norm = (1 - self.norm_smooth)*self._norm + norm_smooth*torch.sqrt(self._norm_sum)
+                self._norm = (1 - self.norm_smooth)*self._norm + self.norm_smooth*torch.sqrt(self._norm_sum)
             self._norm_sum = torch.tensor(0.0, requires_grad=False, device=self.model.device)
         self.lr = lr
         loss.backward()
