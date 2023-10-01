@@ -39,6 +39,7 @@ class SlimTrainer():
         loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, collate_fn=self.data_collater)
 
         total_batches = len(loader)
+        self.optim.init()
 
         for epoch in trange(self.epochs, desc="Epoch"):
             if hasattr(self.scheduler, "epoch_init"):
@@ -49,8 +50,6 @@ class SlimTrainer():
                     batch[k] = v.cuda()
                 loss = self.model(**batch).loss
 
-                if 
-                self.optim.init()
 
                 current_lr = self.scheduler.get_lr()
 
