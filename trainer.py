@@ -46,7 +46,7 @@ class SlimTrainer():
                 self.scheduler.epoch_init()
 
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
-                for k, v in batch:
+                for k, v in batch.items():
                     batch[k] = v.cuda()
                 loss = self.model(**batch).loss
 
