@@ -51,7 +51,7 @@ class SlimTrainer():
 
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
                 loss = checkpoint(
-                    lambda args: self.model(input_ids=args[0], labels=args[1]),
+                    lambda ids, labs: self.model(ids, labs),
                     batch['input_ids'].cuda(),
                     batch['labels'].cuda()
                 ).loss
