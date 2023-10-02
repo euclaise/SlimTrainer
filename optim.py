@@ -90,8 +90,8 @@ class OverlapSGD(OverlapOptimizer):
 
 @dataclass
 class Serval(OverlapOptimizer):
-    self.beta1: float = 0.9
-    self.beta2: float = 0.99
+    beta1: float = 0.9
+    beta2: float = 0.99
     sign: bool = False
     def init(self):
         grad_func = self.grad_func()
