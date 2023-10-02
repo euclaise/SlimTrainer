@@ -90,9 +90,6 @@ class OverlapSGD(OverlapOptimizer):
 
 @dataclass
 class Serval(OverlapOptimizer):
-    beta1: float = 0.9
-    beta2: float = 0.99
-
     def init(self):
         grad_func = self.grad_func()
 
@@ -106,7 +103,7 @@ class Serval(OverlapOptimizer):
         loss.backward()
 
     def prepare(self, p):
-        p._m = torch.zeros_like(p.mean())
+        p._n = torch.zeros_like(p.norm(ord=2))
 
     def grad_func(self):
         @torch.no_grad()
@@ -116,13 +113,14 @@ class Serval(OverlapOptimizer):
                     continue
 
                 g = p.grad
+                gn = g.norm(ord=2)
 
                 p.data.mul_(1 - self.lr * self.decay)
 
-                update = (p._m.clone().mul_(self.beta1) + (g * (1 - self.beta1))).sign_()
+                update = p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1))).sign_()
                 p.add_(update, alpha=-self.lr)
 
-                p._m.mul_(self.beta2).add_(g.mean(), alpha=1 - self.beta2)
+                p._n.mul_(self.beta2).add_(gn, alpha=1 - self.beta2)
 
                 p.grad = None
             return x
