@@ -46,8 +46,6 @@ class SlimTrainer():
             if hasattr(self.scheduler, "epoch_init"):
                 self.scheduler.epoch_init()
 
-            loader.sampler.set_epoch(epoch)
-
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
                 for k, v in batch.items():
                     batch[k] = v.cuda()
