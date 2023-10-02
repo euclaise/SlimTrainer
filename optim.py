@@ -27,17 +27,21 @@ class OverlapLion(OverlapOptimizer):
     beta2: float = 0.99
 
     def init(self):
+        grad_func = self.grad_func()
+
         for p in self.model.parameters():
             if p.requires_grad:
-                self.hook(p)
+                self.prepare(p)
+                p.register_hook(grad_func)
 
     def step(self, loss, lr):
         self.lr = lr
         loss.backward()
 
-    def hook(self, p):
+    def prepare(self, p):
         p._m = torch.zeros_like(p)
 
+    def grad_func(self):
         @torch.no_grad()
         def gf(x):
             for p in self.model.parameters():
@@ -86,20 +90,25 @@ class OverlapSGD(OverlapOptimizer):
 
 @dataclass
 class Serval(OverlapOptimizer):
-    sign: bool = False
+    beta1: float = 0.9
+    beta2: float = 0.99
+
     def init(self):
         grad_func = self.grad_func()
+
         for p in self.model.parameters():
             if p.requires_grad:
+                self.prepare(p)
                 p.register_hook(grad_func)
 
     def step(self, loss, lr):
         self.lr = lr
         loss.backward()
 
-    def grad_func(self):
+    def prepare(self, p):
         p._m = torch.zeros_like(p.mean())
 
+    def grad_func(self):
         @torch.no_grad()
         def gf(x):
             for p in self.model.parameters():
