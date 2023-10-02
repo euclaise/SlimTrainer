@@ -85,8 +85,6 @@ class OverlapSGD(OverlapOptimizer):
         self._acc_grads.append(acc_grad)
 
 
-        m = torch.zeros_like(p)
-
         def grad_func(*_):
             nonlocal m
 
