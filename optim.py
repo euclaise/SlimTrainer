@@ -86,8 +86,6 @@ class OverlapSGD(OverlapOptimizer):
 
 
         def grad_func(*_):
-            nonlocal m
-
             if p.grad is None:
                 return
 
