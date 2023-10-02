@@ -89,7 +89,7 @@ class OverlapSGD(OverlapOptimizer):
         return gf
 
 @dataclass
-class Serval(OverlapOptimizer):
+class OverlapBlockNSGD(OverlapOptimizer):
     def init(self):
         grad_func = self.grad_func()
 
@@ -117,10 +117,53 @@ class Serval(OverlapOptimizer):
 
                 p.data.mul_(1 - self.lr * self.decay)
 
-                update = p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1))).sign_()
+                update = (p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1))).sign_()
                 p.add_(update, alpha=-self.lr)
 
                 p._n.mul_(self.beta2).add_(gn, alpha=1 - self.beta2)
+
+                p.grad = None
+            return x
+        return gf
+
+@dataclass
+class OverlapNSGD(OverlapOptimizer):
+    _n_list: Optional[List[torch.Tensor]] = None
+    _n: Optional[torch.Tensor] = None
+    clip_val: Optional[float] = 0.
+
+
+    def init(self):
+        grad_func = self.grad_func()
+
+        for p in self.model.parameters():
+            if p.requires_grad:
+                p.register_hook(grad_func)
+
+    def step(self, loss, lr):
+        self._n = torch.stack(self._n_list).norm(ord=2)
+        self._n_list = []
+        self.lr = lr
+        loss.backward()
+
+    def grad_func(self):
+        @torch.no_grad()
+        def gf(x):
+            for p in self.model.parameters():
+                if not p.requires_grad or p.grad is None:
+                    continue
+
+                g = p.grad
+                self._n_list.append(g.norm(ord=2))
+
+                if self.clip_val == 0. and self._n != 0.:
+                    g = g / self._n
+                elif self._n != 0.:
+                    g = g.clip(min=-self._n*self.clip_val, max=self._n*self.clip_val)
+
+                p.data.mul_(1 - self.lr * self.decay)
+
+                p.add_(update, alpha=-self.lr)
 
                 p.grad = None
             return x
