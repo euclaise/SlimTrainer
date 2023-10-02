@@ -33,7 +33,7 @@ class Serval(torch.optim.Optimizer):
         self._acc_grads.append(acc_grad)
 
 
-        m = torch.zeros_like(p, device='cpu')
+        m = torch.zeros_like(p)
 
         def grad_func(*_):
             with torch.no_grad():
@@ -41,10 +41,10 @@ class Serval(torch.optim.Optimizer):
 
                 p.data.mul_(1 - self.lr * self.decay)
 
-                update = m.clone().to(p.device).mul_(self.beta1).add(g, alpha=1 - self.beta1).sign_()
+                update = m.clone().mul_(self.beta1).add(g, alpha=1 - self.beta1).sign_()
                 p.add_(update, alpha=-self.lr)
 
-                m.mul_(self.beta2).add_(g.to(m.device), alpha=1 - self.beta2)
+                m.mul_(self.beta2).add_(g, alpha=1 - self.beta2)
 
                 p.grad = None
             
