@@ -45,7 +45,7 @@ class OverlapLion(OverlapOptimizer):
 
         m = torch.zeros_like(p)
 
-        @torch.no_grad
+        @torch.no_grad()
         def grad_func(_):
             nonlocal m
 
@@ -85,7 +85,7 @@ class OverlapSGD(OverlapOptimizer):
         self._acc_grads.append(acc_grad)
 
 
-        @torch.no_grad
+        @torch.no_grad()
         def grad_func(_):
             if p.grad is None:
                 return
@@ -109,7 +109,7 @@ class MiniLOMO(OverlapOptimizer):
         loss.backward()
 
     def grad_func(self):
-        @torch.no_grad
+        @torch.no_grad()
         def gf(x):
             for p in self.model.parameters():
                 if not p.requires_grad or p.grad is None:
