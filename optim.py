@@ -10,6 +10,8 @@ class Serval(torch.optim.Optimizer):
     lr: Optional[float] = None
     decay: Optional[float] = 0.0
     defaults: List = field(default_factory=lambda: [])
+    beta1: float = 0.9
+    beta2: float = 0.99
 
     _acc_grads: Optional[List] = field(default_factory=lambda: [])
 
@@ -22,6 +24,7 @@ class Serval(torch.optim.Optimizer):
     def step(self, loss, lr):
         self.lr = lr
         loss.backward()
+
     def hook(self, p):
         # Gradient accumulator function for p
         # Hook this instead of p, so we know that the hook is being called post-accumulation
@@ -29,14 +32,19 @@ class Serval(torch.optim.Optimizer):
 
         self._acc_grads.append(acc_grad)
 
+
+        m = torch.zeros_like(p, device='cpu')
+
         def grad_func(*_):
             with torch.no_grad():
-                g = p.grad.sign()
+                g = p.grad
 
                 p.data.mul_(1 - self.lr * self.decay)
-                #p.data.add_(-self.lr * torch.sign(p._m.to(g.device).bfloat16() + g))
-                p.data.add_(-self.lr * g)
-                #p._m = g.to(m.device).bool()
+
+                update = m.clone().to(p.device).mul_(self.beta1).add(g, alpha=1 - self.beta1).sign_()
+                p.add_(update, alpha=-self.lr)
+
+                m.mul_(beta2).add_(g, alpha=1 - self.beta2)
 
                 p.grad = None
             
