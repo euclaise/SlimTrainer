@@ -44,7 +44,7 @@ class Serval(torch.optim.Optimizer):
                 update = m.clone().to(p.device).mul_(self.beta1).add(g, alpha=1 - self.beta1).sign_()
                 p.add_(update, alpha=-self.lr)
 
-                m.mul_(self.beta2).add_(g, alpha=1 - self.beta2)
+                m.mul_(self.beta2).add_(g.to(m.device), alpha=1 - self.beta2)
 
                 p.grad = None
             
