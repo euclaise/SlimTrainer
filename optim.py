@@ -36,68 +36,29 @@ class OverlapLion(OverlapOptimizer):
         loss.backward()
 
     def hook(self, p):
-        # Gradient accumulator function for p
-        # Hook this instead of p, so we know that the hook is being called post-accumulation
-        acc_grad = p.view_as(p).grad_fn.next_functions[0][0]
-
-        self._acc_grads.append(acc_grad)
-
-
-        m = torch.zeros_like(p)
+        p._m = torch.zeros_like(p)
 
         @torch.no_grad()
-        def grad_func(_):
-            nonlocal m
+        def gf(x):
+            for p in self.model.parameters():
+                if not p.requires_grad or p.grad is None:
+                    continue
 
-            if p.grad is None:
-                return
+                g = p.grad
 
-            g = p.grad
+                p.data.mul_(1 - self.lr * self.decay)
 
-            p.data.mul_(1 - self.lr * self.decay)
+                update = p._m.clone().mul_(self.beta1).add_(g, alpha=1 - self.beta1).sign_()
+                p.add_(update, alpha=-self.lr)
 
-            update = m.clone().mul_(self.beta1).add_(g, alpha=1 - self.beta1).sign_()
-            p.add_(update, alpha=-self.lr)
+                p._m.mul_(self.beta2).add_(g, alpha=1 - self.beta2)
 
-            m.mul_(self.beta2).add_(g, alpha=1 - self.beta2)
-
-            p.grad = None
-            
-        acc_grad.register_hook(grad_func)
-
+                p.grad = None
+            return x
+        return gf
 
 @dataclass
 class OverlapSGD(OverlapOptimizer):
-    def init(self):
-        for p in self.model.parameters():
-            if p.requires_grad:
-                self.hook(p)
-
-    def step(self, loss, lr):
-        self.lr = lr
-        loss.backward()
-
-    def hook(self, p):
-        # Gradient accumulator function for p
-        # Hook this instead of p, so we know that the hook is being called post-accumulation
-        #acc_grad = p.view_as(p).grad_fn.next_functions[0][0]
-
-        #self._acc_grads.append(acc_grad)
-
-
-        @torch.no_grad()
-        def grad_func(_):
-            if p.grad is None:
-                return
-
-            p.add_(p.grad, alpha=-self.lr)
-            p.grad = None
-            
-        #acc_grad.register_hook(grad_func)
-        p.register_hook(grad_func)
-
-@dataclass
-class MiniLOMO(OverlapOptimizer):
     def init(self):
         grad_func = self.grad_func()
         for p in self.model.parameters():
