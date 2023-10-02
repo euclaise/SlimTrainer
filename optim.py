@@ -35,6 +35,7 @@ class Serval(torch.optim.Optimizer):
         m = torch.zeros_like(p, dtype=torch.bool)
 
         def grad_func(*_):
+            nonlocal m
             with torch.no_grad():
                 g = p.grad
 
