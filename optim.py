@@ -91,7 +91,6 @@ class OverlapSGD(OverlapOptimizer):
 
             with torch.no_grad():
                 p.add_(p.grad, alpha=-self.lr)
-                acc_grad.grad = None
                 p.grad = None
             
         acc_grad.register_hook(grad_func)
