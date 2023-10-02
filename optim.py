@@ -11,7 +11,6 @@ class Serval(torch.optim.Optimizer):
     decay: Optional[float] = 0.0
     defaults: List = field(default_factory=lambda: [])
     beta1: float = 0.9
-    beta2: float = 0.99
 
     _acc_grads: Optional[List] = field(default_factory=lambda: [])
 
@@ -33,7 +32,7 @@ class Serval(torch.optim.Optimizer):
         self._acc_grads.append(acc_grad)
 
 
-        m = torch.zeros_like(p, dtype=torch.int8)
+        m = torch.zeros_like(p, dtype=torch.bool)
 
         def grad_func(*_):
             with torch.no_grad():
@@ -41,10 +40,11 @@ class Serval(torch.optim.Optimizer):
 
                 p.data.mul_(1 - self.lr * self.decay)
 
-                update = (m.clone().bfloat16() / 127).mul_(self.beta1).add(g, alpha=1 - self.beta1).sign_()
+                update = m.bfloat16().mul_(2*self.beta1).add_(g, alpha=-self.beta1).sign_()
                 p.add_(update, alpha=-self.lr)
 
-                m.mul_(self.beta2).add_((g.sign() * 127).to(torch.int8), alpha=1 - self.beta2)
+                m_update = g.clone().add_(1).mul_(0.5).sign_()
+                m = m.bfloat16().add_(m_update, alpha=0.5).sign_().bool()
 
                 p.grad = None
             
