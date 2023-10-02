@@ -50,9 +50,10 @@ class SlimTrainer():
                 self.scheduler.epoch_init()
 
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
-                loss = checkpoint(self.model,
-                    input_ids=batch['input_ids'].cuda(),
-                    labels=batch['labels'].cuda()
+                loss = checkpoint(
+                    lambda args: self.model(input_ids=args[0], labels=args[1]),
+                    batch['input_ids'].cuda(),
+                    batch['labels'].cuda()
                 ).loss
 
                 if first:
