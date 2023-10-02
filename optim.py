@@ -1,4 +1,4 @@
-import torch
+OverlapBlockNSGDimport torch
 from dataclasses import dataclass, field
 from typing import List, Optional
 from collections import defaultdict
@@ -90,6 +90,7 @@ class OverlapSGD(OverlapOptimizer):
 
 @dataclass
 class Serval(OverlapOptimizer):
+    sign: bool = False
     def init(self):
         grad_func = self.grad_func()
 
@@ -117,7 +118,11 @@ class Serval(OverlapOptimizer):
 
                 p.data.mul_(1 - self.lr * self.decay)
 
-                update = (p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1))).sign_()
+                if self.sign:
+                    update = (p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1))).sign_()
+                else:
+                    update = (p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1)))
+
                 p.add_(update, alpha=-self.lr)
 
                 p._n.mul_(self.beta2).add_(gn, alpha=1 - self.beta2)
