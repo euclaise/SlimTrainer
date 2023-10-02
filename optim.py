@@ -80,9 +80,9 @@ class OverlapSGD(OverlapOptimizer):
     def hook(self, p):
         # Gradient accumulator function for p
         # Hook this instead of p, so we know that the hook is being called post-accumulation
-        acc_grad = p.view_as(p).grad_fn.next_functions[0][0]
+        #acc_grad = p.view_as(p).grad_fn.next_functions[0][0]
 
-        self._acc_grads.append(acc_grad)
+        #self._acc_grads.append(acc_grad)
 
 
         @torch.no_grad()
@@ -93,8 +93,8 @@ class OverlapSGD(OverlapOptimizer):
             p.add_(p.grad, alpha=-self.lr)
             p.grad = None
             
-        acc_grad.register_hook(grad_func)
-        #p.register_hook(grad_func)
+        #acc_grad.register_hook(grad_func)
+        p.register_hook(grad_func)
 
 @dataclass
 class MiniLOMO(OverlapOptimizer):
