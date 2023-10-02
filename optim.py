@@ -59,6 +59,7 @@ class OverlapLion(OverlapOptimizer):
 
 @dataclass
 class OverlapSGD(OverlapOptimizer):
+    sign: bool = False
     def init(self):
         grad_func = self.grad_func()
         for p in self.model.parameters():
@@ -75,7 +76,10 @@ class OverlapSGD(OverlapOptimizer):
             for p in self.model.parameters():
                 if not p.requires_grad or p.grad is None:
                     continue
-                p.add_(p.grad, alpha=-self.lr)
+                if self.sign:
+                    p.add_(p.grad.sign(), alpha=-self.lr)
+                else:
+                    p.add_(p.grad, alpha=-self.lr)
                 p.grad = None
             return x
         return gf
