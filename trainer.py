@@ -46,11 +46,9 @@ class SlimTrainer():
                     labels=batch['labels'].cuda()
                 ).loss
 
-                print(f"Pre-back: {torch.cuda.memory_usage()}")
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
                 self.scheduler.step()
 
-                print(f"Post-back: {torch.cuda.memory_usage()}")
 
                 if (batch_idx + 1) % self.report_steps == 0:
                     if self.wandb_entity is not None:

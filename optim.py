@@ -114,4 +114,4 @@ class MiniLOMO(OverlapOptimizer):
                     return x
                 p.add_(p.grad, alpha=-self.lr)
                 p.grad = None
-            return x
+        return x
