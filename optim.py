@@ -103,7 +103,7 @@ class OverlapBlockNSGD(OverlapOptimizer):
         loss.backward()
 
     def prepare(self, p):
-        p._n = torch.zeros_like(p.norm(ord=2))
+        p._n = torch.zeros_like(p.norm(2))
 
     def grad_func(self):
         @torch.no_grad()
@@ -113,7 +113,7 @@ class OverlapBlockNSGD(OverlapOptimizer):
                     continue
 
                 g = p.grad
-                gn = g.norm(ord=2)
+                gn = g.norm(2)
 
                 p.data.mul_(1 - self.lr * self.decay)
 
@@ -144,7 +144,7 @@ class OverlapNSGD(OverlapOptimizer):
         if self._n_list == None:
             self._n = 0.
         else:
-            self._n = torch.stack(self._n_list).norm(ord=2)
+            self._n = torch.stack(self._n_list).norm(2)
         self._n_list = []
         self.lr = lr
         loss.backward()
@@ -157,7 +157,7 @@ class OverlapNSGD(OverlapOptimizer):
                     continue
 
                 g = p.grad
-                self._n_list.append(g.norm(ord=2))
+                self._n_list.append(g.norm(2))
 
                 if self.clip_val == 0. and self._n != 0.:
                     g = g / self._n
