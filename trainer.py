@@ -5,7 +5,6 @@ from transformers import PreTrainedModel
 from tqdm import trange
 from tqdm.contrib import tenumerate
 from torch.utils.data import DataLoader
-from torch.utils.checkpoint import checkpoint
 import torch
 from typing import Optional
 import wandb
@@ -50,10 +49,9 @@ class SlimTrainer():
                 self.scheduler.epoch_init()
 
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
-                loss = checkpoint(
-                    lambda ids, labs: self.model(ids, labs),
-                    batch['input_ids'].cuda(),
-                    batch['labels'].cuda()
+                loss = self.model(
+                    input_ids=batch['input_ids'].cuda(),
+                    labels=batch['labels'].cuda()
                 ).loss
 
                 if first:
