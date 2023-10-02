@@ -52,7 +52,7 @@ class OverlapLion(OverlapOptimizer):
 
                 p.data.mul_(1 - self.lr * self.decay)
 
-                update = (p._m.clone().mul_(self.beta1) + (g * (1 - self.beta1))).sign_()
+                update = p._m.clone().mul_(self.beta1).add_(g, alpha=1 - self.beta1).sign_()
                 p.add_(update, alpha=-self.lr)
 
                 p._m.mul_(self.beta2).add_(g, alpha=1 - self.beta2)
