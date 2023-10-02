@@ -6,6 +6,7 @@ from tqdm import trange
 from tqdm.contrib import tenumerate
 from torch.utils.data import DataLoader
 from torch.utils.checkpoint import checkpoint
+import torch
 from typing import Optional
 import wandb
 
@@ -35,6 +36,7 @@ class SlimTrainer():
             return data.to(self.model.device)
 
     def train(self):
+        first = True
         if self.wandb_entity is not None:
             wandb.init(entity=self.wandb_entity, project=self.wandb_project, name=self.wandb_name)
 
@@ -51,7 +53,11 @@ class SlimTrainer():
                 loss = checkpoint(self.model,
                     input_ids=batch['input_ids'].cuda(),
                     labels=batch['labels'].cuda()
-                )).loss
+                ).loss
+
+                if first:
+                    first = False
+                    print(f"Memory during training: {torch.cuda.memory_allocated()}")
 
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
                 self.scheduler.step()
