@@ -141,7 +141,10 @@ class OverlapNSGD(OverlapOptimizer):
                 p.register_hook(grad_func)
 
     def step(self, loss, lr):
-        self._n = torch.stack(self._n_list).norm(ord=2)
+        if self._n_list == None:
+            self._n = 0.
+        else:
+            self._n = torch.stack(self._n_list).norm(ord=2)
         self._n_list = []
         self.lr = lr
         loss.backward()
