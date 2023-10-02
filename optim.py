@@ -94,4 +94,4 @@ class OverlapSGD(OverlapOptimizer):
                 p.grad = None
             
         #acc_grad.register_hook(grad_func)
-        p.grad_fn.register_hook(grad_func)
+        p.register_hook(grad_func)
