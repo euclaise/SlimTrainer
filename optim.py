@@ -121,11 +121,11 @@ class Serval(OverlapOptimizer):
                 p.data.mul_(1 - self.lr * self.decay)
 
                 if self.sign:
-                    update = (p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1))).sign_()
+                    scale = (p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1))).sign_()
                 else:
-                    update = (p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1)))
+                    scale = (p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1)))
 
-                p.add_(update, alpha=-self.lr)
+                p.add_(g / scale, alpha=-self.lr)
 
                 p._n.mul_(self.beta2).add_(gn, alpha=1 - self.beta2)
 
