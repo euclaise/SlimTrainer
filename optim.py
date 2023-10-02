@@ -45,23 +45,23 @@ class OverlapLion(OverlapOptimizer):
 
         m = torch.zeros_like(p)
 
+        @torch.no_grad
         def grad_func(_):
             nonlocal m
 
             if p.grad is None:
                 return
 
-            with torch.no_grad():
-                g = p.grad
+            g = p.grad
 
-                p.data.mul_(1 - self.lr * self.decay)
+            p.data.mul_(1 - self.lr * self.decay)
 
-                update = m.clone().mul_(self.beta1).add_(g, alpha=1 - self.beta1).sign_()
-                p.add_(update, alpha=-self.lr)
+            update = m.clone().mul_(self.beta1).add_(g, alpha=1 - self.beta1).sign_()
+            p.add_(update, alpha=-self.lr)
 
-                m.mul_(self.beta2).add_(g, alpha=1 - self.beta2)
+            m.mul_(self.beta2).add_(g, alpha=1 - self.beta2)
 
-                p.grad = None
+            p.grad = None
             
         acc_grad.register_hook(grad_func)
 
@@ -85,13 +85,13 @@ class OverlapSGD(OverlapOptimizer):
         self._acc_grads.append(acc_grad)
 
 
+        @torch.no_grad
         def grad_func(_):
             if p.grad is None:
                 return
 
-            with torch.no_grad():
-                p.add_(p.grad, alpha=-self.lr)
-                p.grad = None
+            p.add_(p.grad, alpha=-self.lr)
+            p.grad = None
             
         acc_grad.register_hook(grad_func)
         #p.register_hook(grad_func)
@@ -109,12 +109,12 @@ class MiniLOMO(OverlapOptimizer):
         loss.backward()
 
     def grad_func(self):
+        @torch.no_grad
         def gf(x):
             for p in self.model.parameters():
-                with torch.no_grad():
-                    if not p.requires_grad or p.grad is None:
-                        return x
-                    p.add_(p.grad, alpha=-self.lr)
-                    p.grad = None
+                if not p.requires_grad or p.grad is None:
+                    continue
+                p.add_(p.grad, alpha=-self.lr)
+                p.grad = None
             return x
         return gf
