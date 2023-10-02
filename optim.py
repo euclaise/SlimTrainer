@@ -33,7 +33,7 @@ class Serval(torch.optim.Optimizer):
         self._acc_grads.append(acc_grad)
 
 
-        m = torch.zeros_like(p, dtype=torch.int8, device='cpu')
+        m = torch.zeros_like(p, device='cpu')
 
         def grad_func(*_):
             nonlocal m
