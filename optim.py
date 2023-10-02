@@ -83,3 +83,38 @@ class OverlapSGD(OverlapOptimizer):
                 p.grad = None
             return x
         return gf
+
+@dataclass
+class Serval(OverlapOptimizer):
+    sign: bool = False
+    def init(self):
+        grad_func = self.grad_func()
+        for p in self.model.parameters():
+            if p.requires_grad:
+                p.register_hook(grad_func)
+
+    def step(self, loss, lr):
+        self.lr = lr
+        loss.backward()
+
+    def grad_func(self):
+        p._m = torch.zeros_like(p.mean())
+
+        @torch.no_grad()
+        def gf(x):
+            for p in self.model.parameters():
+                if not p.requires_grad or p.grad is None:
+                    continue
+
+                g = p.grad
+
+                p.data.mul_(1 - self.lr * self.decay)
+
+                update = p._m.clone().mul_(self.beta1).add_(g, alpha=1 - self.beta1).sign_()
+                p.add_(update, alpha=-self.lr)
+
+                p._m.mul_(self.beta2).add_(g.mean(), alpha=1 - self.beta2)
+
+                p.grad = None
+            return x
+        return gf
