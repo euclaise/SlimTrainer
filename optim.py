@@ -99,19 +99,22 @@ class OverlapSGD(OverlapOptimizer):
 @dataclass
 class MiniLOMO(OverlapOptimizer):
     def init(self):
+        grad_func = self.grad_func()
         for p in self.model.parameters():
             if p.requires_grad:
-                p.register_hook(self.grad_func)
+                p.register_hook(grad_func)
 
     def step(self, loss, lr):
         self.lr = lr
         loss.backward()
 
-    def grad_func(x):
-        for p in self.model.parameters():
-            with torch.no_grad():
-                if p.grad is None or not p.requires_grad:
-                    return x
-                p.add_(p.grad, alpha=-self.lr)
-                p.grad = None
-        return x
+    def grad_func(self):
+        def gf(x):
+            for p in self.model.parameters():
+                with torch.no_grad():
+                    if p.grad is None or not p.requires_grad:
+                        return x
+                    p.add_(p.grad, alpha=-self.lr)
+                    p.grad = None
+            return x
+        return gf
