@@ -23,7 +23,6 @@ class SlimTrainer():
     wandb_entity: Optional[str]
     wandb_project: Optional[str]
     wandb_name: Optional[str]
-    grad_accum_steps: int = 1
     report_steps: int = 1
 
     def _prepare_input(self, data):
@@ -47,20 +46,16 @@ class SlimTrainer():
             if hasattr(self.scheduler, "epoch_init"):
                 self.scheduler.epoch_init()
 
-            accum_loss = 0.0
+            loader.sampler.set_epoch(epoch)
+
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
                 for k, v in batch.items():
                     batch[k] = v.cuda()
                 loss = self.model(**batch).loss
-                accum_loss += loss
-                loss = loss.detach()
 
 
-                if (batch_idx + 1) % self.grad_accum_steps == 0:
-                    self.optim.step(accum_loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
-                    accum_loss = 0.0
-
-                    self.scheduler.step()
+                self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
+                self.scheduler.step()
 
                 if (batch_idx + 1) % self.report_steps == 0:
                     if self.wandb_entity is not None:
