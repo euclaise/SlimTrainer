@@ -26,14 +26,6 @@ class SlimTrainer():
     wandb_name: Optional[str]
     report_steps: int = 1
 
-    def _prepare_input(self, data):
-        if isinstance(data, Mapping):
-            return type(data)({k: self._prepare_input(v) for k, v in data.items()})
-        if isinstance(data, (tuple, list)):
-            return type(data)(self._prepare_input(v) for v in data)
-        if isinstance(data, torch.Tensor):
-            return data.to(self.model.device)
-
     def train(self):
         first = True
         if self.wandb_entity is not None:
@@ -56,7 +48,6 @@ class SlimTrainer():
 
                 if first:
                     first = False
-                    print(f"Memory during training: {torch.cuda.memory_allocated()}")
 
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
                 self.scheduler.step()
