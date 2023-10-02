@@ -89,7 +89,7 @@ class OverlapSGD(OverlapOptimizer):
         return gf
 
 @dataclass
-class OverlapBlockNSGD(OverlapOptimizer):
+class Serval(OverlapOptimizer):
     def init(self):
         grad_func = self.grad_func()
 
@@ -166,7 +166,7 @@ class OverlapNSGD(OverlapOptimizer):
 
                 p.data.mul_(1 - self.lr * self.decay)
 
-                p.add_(update, alpha=-self.lr)
+                p.add_(g, alpha=-self.lr)
 
                 p.grad = None
             return x
