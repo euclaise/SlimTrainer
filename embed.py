@@ -6,18 +6,20 @@ class QuantEmbedding(nn.Module):
     def __init__(self, old_emb: nn.Embedding):
         super().__init__()
 
+        old_weight = old_emb.weight.data
+
         self.embedding_dim = old_emb.embedding_dim
         self.num_embeddings = old_emb.num_embeddings
 
-        mins = old_emb.weight.min(dim=1).values.view(-1, 1)
-        maxs = old_emb.weight.max(dim=1).values.view(-1, 1)
+        mins = old_weight.min(dim=1).values.view(-1, 1)
+        maxs = old_weight.max(dim=1).values.view(-1, 1)
 
         self.scales = nn.Parameter((maxs - mins) / 255.0, requires_grad=False)
-        self.means = nn.Parameter(old_emb.weight.mean(dim=1).view(-1, 1), requires_grad=False)
+        self.means = nn.Parameter(old_weight.mean(dim=1).view(-1, 1), requires_grad=False)
 
         self.scales[self.scales == 0] = 1e-8
 
-        self.weight = nn.Parameter(((old_emb.weight - self.means) / self.scales).round().clamp(min=-128, max=127).to(torch.int8), requires_grad=False)
+        self.weight = nn.Parameter(((old_weight - self.means) / self.scales).round().clamp(min=-128, max=127).to(torch.int8), requires_grad=False)
 
         self.requires_grad = False
 
