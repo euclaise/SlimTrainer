@@ -5,8 +5,8 @@ from torch import nn
 class SigmaLinear(nn.Module):
     def __init__(self, layer: nn.Linear, num_steps=1, num_steps_start=5):
         super().__init__()
-        self.b = nn.Parameter(layer.bias) if layer.bias != None else None
-        self.W = nn.Parameter(layer.weight.T)
+        self.b = nn.Parameter(layer.bias.data) if layer.bias != None else None
+        self.W = nn.Parameter(layer.weight.T.data)
         self.num_steps = num_steps
 
         d, c = self.W.shape
