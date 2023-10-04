@@ -24,7 +24,7 @@ class SlimTrainer():
     wandb_entity: Optional[str]
     wandb_project: Optional[str]
     wandb_name: Optional[str]
-    report_steps: int = 1
+    report_steps: int = 8
 
     def train(self):
         first = True
@@ -54,10 +54,11 @@ class SlimTrainer():
 
                 if (batch_idx + 1) % self.report_steps == 0:
                     if self.wandb_entity is not None:
-                        wandb.log({'loss': loss_avg})
+                        wandb.log({'loss': loss_avg / self.report_steps})
                         wandb.log({'epoch': (epoch + batch_idx) / total_batches})
                         wandb.log({'step': epoch*len(loader) + batch_idx})
                         wandb.log({'learning_rate': self.scheduler.get_lr()})
+                    loss_avg = 0
 
             if hasattr(self.scheduler, "epoch_end"):
                 self.scheduler.epoch_end()
