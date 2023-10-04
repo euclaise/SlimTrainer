@@ -89,10 +89,15 @@ class OverlapSGD(OverlapOptimizer):
         return gf
 
 @dataclass
-class Serval(OverlapOptimizer):
-    beta1: float = 0.9
-    beta2: float = 0.99
-    sign: bool = False
+class Adalite(OverlapOptimizer):
+    use_lr: bool = True
+    eps1: float = 1e-30
+    eps2: float = 1e-3
+    beta2_decay: float = 0.8
+    d: float = 1.0
+    lars: bool = True
+    _t: int = 0
+
     def init(self):
         grad_func = self.grad_func()
 
@@ -101,59 +106,24 @@ class Serval(OverlapOptimizer):
                 self.prepare(p)
                 p.register_hook(grad_func)
 
-    def step(self, loss, lr):
+    def step(self, loss, lr=None):
+        self._t += 1
         self.lr = lr
         loss.backward()
 
     def prepare(self, p):
-        p._n = torch.zeros_like(p.norm(2))
+        if len(p.shape) == 2:
+            n = p.shape[0]
+            m = p.shape[1]
 
-    def grad_func(self):
-        @torch.no_grad()
-        def gf(x):
-            for p in self.model.parameters():
-                if not p.requires_grad or p.grad is None:
-                    continue
+            p._r = torch.zeros(n, device=p.device, dtype=p.dtype)
+            p._c = torch.zeros(m, device=p.device, dtype=p.dtype)
 
-                g = p.grad
-                gn = g.norm(2)
-
-                p.data.mul_(1 - self.lr * self.decay)
-
-                scale = p / (p._n.clone().mul_(self.beta1) + (gn * (1 - self.beta1)))
-                if self.sign:
-                    p.add_(g.sign() * scale, alpha=-self.lr)
-                else:
-                    p.add_(g * scale, alpha=-self.lr)
-
-                p._n.mul_(self.beta2).add_(gn, alpha=1 - self.beta2)
-
-                p.grad = None
-            return x
-        return gf
-
-@dataclass
-class OverlapNSGD(OverlapOptimizer):
-    _n_list: Optional[List[torch.Tensor]] = None
-    _n: Optional[torch.Tensor] = None
-    clip_val: Optional[float] = 0.
-
-
-    def init(self):
-        grad_func = self.grad_func()
-
-        for p in self.model.parameters():
-            if p.requires_grad:
-                p.register_hook(grad_func)
-
-    def step(self, loss, lr):
-        if self._n_list == None:
-            self._n = 0.
         else:
-            self._n = torch.stack(self._n_list).norm(2)
-        self._n_list = []
-        self.lr = lr
-        loss.backward()
+            p._v = torch.zeros_like(p)
+
+    def _rms(self, x):
+        return x.square().mean().sqrt()
 
     def grad_func(self):
         @torch.no_grad()
@@ -162,18 +132,39 @@ class OverlapNSGD(OverlapOptimizer):
                 if not p.requires_grad or p.grad is None:
                     continue
 
+                if self.use_lr:
+                    alpha = self.lr
+                else:
+                    rho = min(1e-2, 1 / math.sqrt(self._t))
+                    alpha = max(self._rms(p), self.eps2)*rho
+
                 g = p.grad
-                self._n_list.append(g.norm(2))
 
-                if self.clip_val == 0. and self._n != 0.:
-                    g = g / self._n
-                elif self._n != 0.:
-                    g = g.clip(min=-self._n*self.clip_val, max=self._n*self.clip_val)
+                beta2t = 1.0 - math.pow(self._t, -self.beta2_decay)
+                u = g.square() + self.eps2
 
-                p.data.mul_(1 - self.lr * self.decay)
+                if len(p.shape) == 2:
+                    p._r.mul_(beta2t).add_(u.mean(dim=1), alpha=1-beta2t)
+                    p._c.mul_(beta2t).add_(u.mean(dim=0), alpha=1-beta2t)
 
-                p.add_(g, alpha=-self.lr)
+                    r_factor = (p._r / p._r.mean(dim=-1)).rsqrt_().unsqueeze(-1)
+                    c_factor = p._c.unsqueeze(-2).rsqrt()
+                    m = r_factor @ c_factor
+                    m.mul_(g)
+                else:
+                    p._v.mul_(beta2t).add_(u, alpha=1-beta2t)
+                    m = p._v.rsqrt() * g
 
+
+                m.div_(max(1.0, self._rms(m) / self.d))
+
+                p_norm = p.norm()
+                g_norm = g.norm()
+
+                if p_norm != 0 and g_norm != 0:
+                    m.mul_(p_norm / g_norm)
+
+                p.add_(m, alpha=-alpha)
                 p.grad = None
             return x
         return gf

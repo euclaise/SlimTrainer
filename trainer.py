@@ -53,8 +53,8 @@ class SlimTrainer():
                 if (batch_idx + 1) % self.report_steps == 0:
                     if self.wandb_entity is not None:
                         wandb.log({'loss': loss.item()})
-                        wandb.log({'epoch': epoch + batch_idx / total_batches})
-                        wandb.log({'step': epoch*self.batch_size + batch_idx})
+                        wandb.log({'epoch': (epoch + batch_idx) / total_batches})
+                        wandb.log({'step': epoch*len(loader) + batch_idx})
                         wandb.log({'learning_rate': self.scheduler.get_lr()})
 
             if hasattr(self.scheduler, "epoch_end"):
