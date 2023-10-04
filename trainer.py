@@ -40,6 +40,7 @@ class SlimTrainer():
             if hasattr(self.scheduler, "epoch_init"):
                 self.scheduler.epoch_init()
 
+            loss_avg = 0
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
                 loss = self.model(
                     input_ids=batch['input_ids'].cuda(),
@@ -48,11 +49,12 @@ class SlimTrainer():
 
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
                 self.scheduler.step()
+                loss_avg += loss.detach().item()
 
 
                 if (batch_idx + 1) % self.report_steps == 0:
                     if self.wandb_entity is not None:
-                        wandb.log({'loss': loss.item()})
+                        wandb.log({'loss': loss_avg})
                         wandb.log({'epoch': (epoch + batch_idx) / total_batches})
                         wandb.log({'step': epoch*len(loader) + batch_idx})
                         wandb.log({'learning_rate': self.scheduler.get_lr()})
