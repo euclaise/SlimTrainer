@@ -40,7 +40,7 @@ class OverlapLion(OverlapOptimizer):
     def prepare(self, p):
         p._m = torch.zeros_like(p)
 
-    def hook(self):
+    def hook(self, p):
         ag = p.view_as(p).grad_fn.next_functions[0][0]
         p._acc_grads = [ag]
 
@@ -68,7 +68,7 @@ class OverlapSGD(OverlapOptimizer):
         self.lr = lr
         loss.backward()
 
-    def hook(self):
+    def hook(self, p):
         ag = p.view_as(p).grad_fn.next_functions[0][0]
         p._acc_grads = [ag]
 
@@ -111,7 +111,7 @@ class Adalite(OverlapOptimizer):
     def _rms(self, x):
         return x.square().mean().sqrt()
 
-    def hook(self):
+    def hook(self, p):
         ag = p.view_as(p).grad_fn.next_functions[0][0]
         p._acc_grads = [ag]
 
