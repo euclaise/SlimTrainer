@@ -114,9 +114,8 @@ class Adalite(OverlapOptimizer):
         return x.square().mean().sqrt()
 
     def hook(self):
-        p._acc_grads = []
         ag = p.view_as(p).grad_fn.next_functions[0][0]
-        p._acc_grads.append(ag)
+        p._acc_grads = [ag]
 
         @torch.no_grad()
         def gf(*_):
