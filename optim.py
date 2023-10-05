@@ -41,9 +41,8 @@ class OverlapLion(OverlapOptimizer):
         p._m = torch.zeros_like(p)
 
     def hook(self):
-        p._acc_grads = []
         ag = p.view_as(p).grad_fn.next_functions[0][0]
-        p._acc_grads.append(ag)
+        p._acc_grads = [ag]
 
         @torch.no_grad()
         def gf(*_):
@@ -70,9 +69,8 @@ class OverlapSGD(OverlapOptimizer):
         loss.backward()
 
     def hook(self):
-        p._acc_grads = []
         ag = p.view_as(p).grad_fn.next_functions[0][0]
-        p._acc_grads.append(ag)
+        p._acc_grads = [ag]
 
         @torch.no_grad()
         def gf(*_):
