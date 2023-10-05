@@ -88,8 +88,8 @@ class Adalite(OverlapOptimizer):
     eps1: float = 1e-30
     eps2: float = 1e-3
     beta2_decay: float = 0.8
-    d: float = 1.0
     lars: bool = True
+    use_rms: bool = False # RMS normalization from Adafactor - seems to take up memory but doesn't help performance
     _t: int = 0
 
     def step(self, loss, lr=None):
@@ -141,7 +141,8 @@ class Adalite(OverlapOptimizer):
                 m = p._v.rsqrt() * g
 
 
-            m.div_(max(1.0, self._rms(m) / self.d))
+            if self.use_rms:
+                m.div_(max(1.0, self._rms(m)))
 
             p_norm = p.norm()
             g_norm = g.norm()
