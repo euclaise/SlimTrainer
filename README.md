@@ -1,3 +1,5 @@
+This repository is currently in an early, expiremental stage, and should not be considered production-ready.
+
 SlimTrainer and Adalite allow for full parameter 16-bit finetuning of language models up to 7B on a single 24GB GPU.
 
 The optimizer uses the backpropagation fusing technique from [LOMO](https://github.com/OpenLMLab/LOMO), but uses a custom optimizer instead of using simple SGD.
