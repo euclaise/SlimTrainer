@@ -25,6 +25,8 @@ class SlimTrainer():
     wandb_project: Optional[str]
     wandb_name: Optional[str]
     report_steps: int = 8
+    neft: bool = False
+    freeze_embeds: bool = True
 
     def train(self):
         first = True
@@ -36,16 +38,31 @@ class SlimTrainer():
         total_batches = len(loader)
         self.optim.init()
 
+        if self.freeze_embeds:
+            model.get_input_embeddings().requires_grad = False
+            model.get_output_embeddings().requires_grad = False
+
+        if self.neft:
+            embedding_layer = model.get_input_embeddings()
+
         for epoch in trange(self.epochs, desc="Epoch"):
             if hasattr(self.scheduler, "epoch_init"):
                 self.scheduler.epoch_init()
 
             loss_avg = 0
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
-                loss = self.model(
-                    input_ids=batch['input_ids'].cuda(),
-                    labels=batch['labels'].cuda()
-                ).loss
+                if self.neft:
+                    embeds = embedding_layer(batch['input_ids'].cuda())
+                    noise = torch.rand_like(embeds) * 5/torch.sqrt(2048 * embeds.shape[-1])
+                    loss = self.model(
+                        input_embeds=embeds + noise,
+                        labels=batch['labels'].cuda()
+                    ).loss
+                else:
+                    loss = self.model(
+                        input_ids=batch['input_ids'].cuda(),
+                        labels=batch['labels'].cuda()
+                    ).loss
 
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
                 self.scheduler.step()
