@@ -39,11 +39,11 @@ class SlimTrainer():
         self.optim.init()
 
         if self.freeze_embeds:
-            model.get_input_embeddings().requires_grad = False
-            model.get_output_embeddings().requires_grad = False
+            self.model.get_input_embeddings().requires_grad = False
+            self.model.get_output_embeddings().requires_grad = False
 
         if self.neft:
-            embedding_layer = model.get_input_embeddings()
+            embedding_layer = self.model.get_input_embeddings()
 
         for epoch in trange(self.epochs, desc="Epoch"):
             if hasattr(self.scheduler, "epoch_init"):
