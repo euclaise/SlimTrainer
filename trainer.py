@@ -56,7 +56,7 @@ class SlimTrainer():
                     embeds = embedding_layer(batch['input_ids'].cuda())
                     noise = torch.rand_like(embeds) * 5/math.sqrt(2048 * embeds.shape[-1])
                     loss = self.model(
-                        input_embeds=embeds + noise,
+                        inputs_embeds=embeds + noise,
                         labels=batch['labels'].cuda()
                     ).loss
                 else:
