@@ -54,7 +54,7 @@ class SlimTrainer():
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
                 if self.neft:
                     embeds = embedding_layer(batch['input_ids'].cuda())
-                    noise = torch.rand_like(embeds) * 5/math.sqrt(2048 * embeds.shape[-1])
+                    noise = (torch.rand_like(embeds) - 0.5) * 10/math.sqrt(2048 * embeds.shape[-1])
                     loss = self.model(
                         inputs_embeds=embeds + noise,
                         labels=batch['labels'].cuda()
