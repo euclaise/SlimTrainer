@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import math
 from datasets import Dataset
 from typing import Callable, Mapping
 from transformers import PreTrainedModel
@@ -53,7 +54,7 @@ class SlimTrainer():
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
                 if self.neft:
                     embeds = embedding_layer(batch['input_ids'].cuda())
-                    noise = torch.rand_like(embeds) * 5/torch.sqrt(2048 * embeds.shape[-1])
+                    noise = torch.rand_like(embeds) * 5/math.sqrt(2048 * embeds.shape[-1])
                     loss = self.model(
                         input_embeds=embeds + noise,
                         labels=batch['labels'].cuda()
