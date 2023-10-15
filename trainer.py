@@ -19,7 +19,7 @@ class SlimTrainer():
     optim: OverlapOptimizer
     train_data: Dataset
     epochs: int
-    data_collater: Callable
+    data_collator: Callable
     batch_size: int
     scheduler: LRScheduler
     wandb_entity: Optional[str]
@@ -34,7 +34,7 @@ class SlimTrainer():
         if self.wandb_entity is not None:
             wandb.init(entity=self.wandb_entity, project=self.wandb_project, name=self.wandb_name)
 
-        loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, collate_fn=self.data_collater)
+        loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, collate_fn=self.data_collator)
 
         total_batches = len(loader)
         self.optim.init()
