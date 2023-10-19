@@ -35,8 +35,8 @@ class SlimTrainer():
         if self.mixce:
             logits = self.model(**inputs).logits.log_softmax(dim=-1)
             
-            logits = logits[..., :-1]
-            labels = labels[..., 1:]
+            logits = logits[..., :-1, :].contiguous()
+            labels = labels[..., 1:].contiguous()
 
             labels = labels.clone()
             labels[labels == -100] = 0
