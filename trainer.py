@@ -31,7 +31,7 @@ class SlimTrainer():
     mixce: bool = False # https://arxiv.org/abs/2305.16958
     mixce_ratio: float = 0.2
 
-    def compute_loss(self, labels, inputs):
+    def compute_loss(self, labels, **inputs):
         if self.mixce:
             labels = labels.clone()
             logits = self.model(**inputs).logits.log_softmax()
@@ -69,23 +69,18 @@ class SlimTrainer():
 
             loss_avg = 0
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
+                labels = batch['labels'].cuda()
                 if self.neft:
                     embeds = embedding_layer(batch['input_ids'].cuda())
                     noise = (torch.rand_like(embeds) - 0.5) * 10/math.sqrt(512 * embeds.shape[-1])
                     loss = self.compute_loss(
-                        labels,
-                        inputs={
-                            'inputs_embeds': embeds + noise,
-                            'labels': batch['labels'].cuda()
-                        }
+                        labels=labels,
+                        inputs_embeds = embeds + noise
                     ).loss
                 else:
                     loss = self.compute_loss(
-                        labels,
-                        inputs={
-                            'inputs_embeds': batch['input_ids'].cuda(),
-                            'labels': batch['labels'].cuda()
-                        }
+                        labels=labels,
+                        input_ids = batch['input_ids'].cuda()
                     ).loss
 
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
