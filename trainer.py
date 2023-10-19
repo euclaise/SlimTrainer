@@ -34,7 +34,7 @@ class SlimTrainer():
     def compute_loss(self, labels, **inputs):
         if self.mixce:
             labels = labels.clone()
-            logits = self.model(**inputs).logits.log_softmax()
+            logits = self.model(**inputs).logits.log_softmax(dim=-1)
             mask = (labels != -100)
             log_probs = torch.gather(logits, dim=-1, index=labels.unsqueeze(-1)).squeeze(-1) * mask
 
