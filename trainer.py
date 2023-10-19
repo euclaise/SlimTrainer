@@ -29,7 +29,7 @@ class SlimTrainer():
     neft: bool = False # https://arxiv.org/abs/2310.05914
     freeze_embeds: bool = True
     mixce: bool = False # https://arxiv.org/abs/2305.16958
-    mixce_ratio: float = 0.2
+    mixce_ratio: float = 0.25
 
     def compute_loss(self, labels, **inputs):
         if self.mixce:
