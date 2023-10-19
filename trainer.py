@@ -42,7 +42,7 @@ class SlimTrainer():
             with torch.no_grad():
                 q = torch.exp(log_probs.detach())
 
-            losses = self.mixce_ratio * log_probs + (1.0 - self.mixce_ratio) * q * log_probs
+            losses = self.mixce_ratio * -log_probs + (1.0 - self.mixce_ratio) * q * -log_probs
             return losses.sum() / mask.sum()
         else:
             return self.model(**inputs).loss
