@@ -77,12 +77,12 @@ class SlimTrainer():
                     loss = self.compute_loss(
                         labels=labels,
                         inputs_embeds = embeds + noise
-                    ).loss
+                    )
                 else:
                     loss = self.compute_loss(
                         labels=labels,
                         input_ids = batch['input_ids'].cuda()
-                    ).loss
+                    )
 
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
                 self.scheduler.step()
