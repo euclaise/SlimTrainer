@@ -36,7 +36,7 @@ class SlimTrainer():
             labels = labels.clone()
             logits = self.model(**inputs).logits.log_softmax(dim=-1)
             mask = (labels != -100)
-            labels[labels = -100] = 0
+            labels[labels == -100] = 0
             log_probs = torch.gather(logits, dim=-1, index=labels.unsqueeze(-1)).squeeze(-1) * mask
 
             with torch.no_grad():
