@@ -33,22 +33,23 @@ class SlimTrainer():
 
     def compute_loss(self, labels, **inputs):
         if self.mixce:
-            logits = self.model(**inputs).logits.log_softmax(dim=-1)
-            
-            logits = logits[..., :-1, :].contiguous()
-            labels = labels[..., 1:].contiguous()
-
             labels = labels.clone()
-            labels[labels == -100] = 0
-            mask = (labels != -100)
 
-            log_probs = torch.gather(logits, dim=-1, index=labels.unsqueeze(-1)).squeeze(-1)
+            logits = self.model(**inputs).logits.log_softmax(-1)
+            
+            logits = logits[:, :-1, :].contiguous()
+            labels = labels[:, 1:].contiguous()
+
+            mask = (labels != -100)
+            labels[labels == -100] = 0
+
+            log_probs = logits.gather(dim=-1, index=labels.unsqueeze(-1)).squeeze(-1)
 
             with torch.no_grad():
                 q = torch.exp(log_probs.detach())
 
             losses = self.mixce_ratio * -log_probs + (1.0 - self.mixce_ratio) * q * -log_probs
-            return (losses * mask).sum() / mask.sum()
+            return (losses * mask.float()).sum() / mask.sum()
         else:
             return self.model(**inputs).loss
 
