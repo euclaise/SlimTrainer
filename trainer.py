@@ -63,11 +63,12 @@ class SlimTrainer():
         loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, collate_fn=self.data_collator)
 
         total_batches = len(loader)
-        self.optim.init()
 
         if self.freeze_embeds:
             self.model.get_input_embeddings().requires_grad = False
             self.model.get_output_embeddings().requires_grad = False
+
+        self.optim.init()
 
         if self.neft:
             embedding_layer = self.model.get_input_embeddings()
