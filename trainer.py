@@ -29,39 +29,12 @@ class SlimTrainer():
     report_steps: int = 8
     neft: bool = False # https://arxiv.org/abs/2310.05914
     freeze_embeds: bool = True
-    emo: bool = False # https://arxiv.org/abs/2310.04691
     mixce: bool = False # https://arxiv.org/abs/2305.16958
     mixce_ratio: float = 0.5
 
     def compute_loss(self, labels, **inputs):
         outputs = self.model(**inputs)
-        if self.emo: # largely based on https://github.com/DRSY/EMO/blob/main/emo_llama.py
-            weight_matrix = self.model.get_output_embeddings().weight
-            labels = labels.clone()
-
-            logits = outputs.logits.log_softmax(-1).to(weight_matrix.dtype)
-            
-            logits = logits[:, :-1, :].contiguous()
-            labels = labels[:, 1:].contiguous()
-
-            mask = (labels != -100)
-            labels[labels == -100] = 0
-
-            log_probs = logits.gather(dim=-1, index=labels.unsqueeze(-1)).squeeze(-1)
-
-            onehot = F.one_hot(labels, num_classes=self.model.config.vocab_size).to(logits.dtype) + 1e-15 
-            onehot = onehot / torch.linalg.vector_norm(onehot, ord=2, dim=1, keepdim=True)
-
-            norm_matrix = (weight_matrix / torch.linalg.vector_norm(weight_matrix, ord=2, dim=1, keepdim=True)).detach()
-
-            p_contextual = onehot @ norm_matrix
-            q_contextual = logits.exp() @ norm_matrix
-            emo_loss = 1 - torch.sum(p_contextual*q_contextual, dim=-1)
-
-            losses = ((-log_probs / (emo_loss+1e-10)).detach() * emo_loss - log_probs)*0.5
-            return (losses * mask.float()).sum() / mask.sum()
-
-        elif self.mixce:
+        if self.mixce:
             labels = labels.clone()
 
             logits = outputs.logits.log_softmax(-1)
@@ -83,7 +56,6 @@ class SlimTrainer():
             return outputs.loss
 
     def train(self):
-        assert not all([self.emo, self.mixce]), "Only one of EMO/MixCE can be enabled"
         first = True
         if self.wandb_entity is not None:
             wandb.init(entity=self.wandb_entity, project=self.wandb_project, name=self.wandb_name)
