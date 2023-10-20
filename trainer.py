@@ -49,7 +49,7 @@ class SlimTrainer():
 
             norm_matrix = weight_matrix / torch.linalg.vector_norm(weight_matrix, ord=2, dim=1, keepdim=True)
 
-            p_contextual = norm_matrix[label_ids, :]
+            p_contextual = norm_matrix[labels, :]
             q_grad = logits.exp()
             q_contextual = q_grad @ norm_matrix
             emo_loss = 1 - torch.sum(p_contextual*q_contextual, dim=-1)
