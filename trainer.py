@@ -39,7 +39,7 @@ class SlimTrainer():
             weight_matrix = self.model.get_output_embeddings().weight
             labels = labels.clone()
 
-            logits = outputs.logits.log_softmax(-1)
+            logits = outputs.logits.log_softmax(-1).to(weight_matrix.dtype)
             
             logits = logits[:, :-1, :].contiguous()
             labels = labels[:, 1:].contiguous()
