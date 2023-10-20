@@ -49,7 +49,7 @@ class SlimTrainer():
 
             log_probs = logits.gather(dim=-1, index=labels.unsqueeze(-1)).squeeze(-1)
 
-            norm_matrix = weight_matrix / torch.linalg.vector_norm(weight_matrix, ord=2, dim=1, keepdim=True)
+            norm_matrix = (weight_matrix / torch.linalg.vector_norm(weight_matrix, ord=2, dim=1, keepdim=True)).detach()
 
             p_contextual = norm_matrix[labels, :]
             q_grad = logits.exp()
