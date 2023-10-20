@@ -47,6 +47,8 @@ class SlimTrainer():
             mask = (labels != -100)
             labels[labels == -100] = 0
 
+            log_probs = logits.gather(dim=-1, index=labels.unsqueeze(-1)).squeeze(-1)
+
             norm_matrix = weight_matrix / torch.linalg.vector_norm(weight_matrix, ord=2, dim=1, keepdim=True)
 
             p_contextual = norm_matrix[labels, :]
