@@ -36,7 +36,7 @@ class SlimTrainer():
     def compute_loss(self, labels, **inputs):
         outputs = self.model(**inputs)
         if self.emo:
-            emb_mat = model.get_output_embeddings().weight
+            emb_mat = self.model.get_output_embeddings().weight
             labels = labels.clone()
 
             logits = outputs.logits.log_softmax(-1)
