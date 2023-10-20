@@ -56,7 +56,7 @@ class SlimTrainer():
             q_contextual = q_grad @ norm_matrix
             emo_loss = 1 - torch.sum(p_contextual*q_contextual, dim=-1)
 
-            losses = ((-log_probs / (emo_loss+1e-10)).detach() * emo_loss + mle_loss)*0.5
+            losses = ((-log_probs / (emo_loss+1e-10)).detach() * emo_loss - log_probs)*0.5
             return (losses * mask.float()).sum() / mask.sum()
 
         elif self.mixce:
