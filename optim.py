@@ -89,7 +89,6 @@ class Adalite(OverlapOptimizer):
     eps2: float = 1e-3
     beta2_decay: float = 0.8
     lars: bool = True
-    use_rms: bool = False # RMS normalization from Adafactor - seems to take up memory but doesn't help performance
     _t: int = 0
 
     def step(self, loss, lr=None):
@@ -102,14 +101,10 @@ class Adalite(OverlapOptimizer):
             n = p.shape[0]
             m = p.shape[1]
 
-            p._r = torch.zeros(n, device=p.device, dtype=p.dtype)
-            p._c = torch.zeros(m, device=p.device, dtype=p.dtype)
+            p._c = torch.zeros(p.shape[1], device=p.device, dtype=p.dtype)
 
         else:
             p._v = torch.zeros_like(p)
-
-    def _rms(self, x):
-        return x.square().mean().sqrt()
 
     def hook(self, p):
         ag = p.view_as(p).grad_fn.next_functions[0][0]
@@ -129,20 +124,13 @@ class Adalite(OverlapOptimizer):
             u = g.square() + self.eps2
 
             if len(p.shape) == 2:
-                p._r.mul_(beta2t).add_(u.mean(dim=1), alpha=1-beta2t)
                 p._c.mul_(beta2t).add_(u.mean(dim=0), alpha=1-beta2t)
 
-                r_factor = (p._r / p._r.mean(dim=-1)).rsqrt_().unsqueeze(-1)
-                c_factor = p._c.unsqueeze(-2).rsqrt()
-                m = r_factor @ c_factor
-                m.mul_(g)
+                m = p._c.rsqrt().broadcast_to(g.shape)
+                m = m * g
             else:
                 p._v.mul_(beta2t).add_(u, alpha=1-beta2t)
                 m = p._v.rsqrt() * g
-
-
-            if self.use_rms:
-                m.div_(max(1.0, self._rms(m)))
 
             p_norm = p.norm()
             g_norm = g.norm()
