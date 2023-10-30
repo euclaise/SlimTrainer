@@ -84,7 +84,7 @@ class OverlapSGD(OverlapOptimizer):
 
 @dataclass
 class Adalite(OverlapOptimizer):
-    eps: float = 1e-6
+    eps: float = 1e-4
     beta_decay: float = 0.8
     centralize: bool = True
     _t: int = 0
