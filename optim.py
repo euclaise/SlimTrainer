@@ -84,7 +84,6 @@ class OverlapSGD(OverlapOptimizer):
 
 @dataclass
 class Adalite(OverlapOptimizer):
-    use_lr: bool = True
     eps: float = 1e-6
     beta_decay: float = 0.8
     centralize: bool = True
@@ -111,11 +110,7 @@ class Adalite(OverlapOptimizer):
 
         @torch.no_grad()
         def gf(*_):
-            if self.use_lr:
-                alpha = self.lr
-            else:
-                rho = min(1e-2, 1 / math.sqrt(self._t))
-                alpha = max(self._rms(p), self.eps)*rho
+            alpha = self.lr
 
             g = p.grad
 
