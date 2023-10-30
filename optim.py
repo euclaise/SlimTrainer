@@ -85,10 +85,9 @@ class OverlapSGD(OverlapOptimizer):
 @dataclass
 class Adalite(OverlapOptimizer):
     use_lr: bool = True
-    eps1: float = 1e-30
-    eps2: float = 1e-3
-    beta2_decay: float = 0.8
-    lars: bool = True
+    eps: float = 1e-6
+    beta_decay: float = 0.8
+    centralize: bool = True
     _t: int = 0
 
     def step(self, loss, lr=None):
@@ -116,20 +115,24 @@ class Adalite(OverlapOptimizer):
                 alpha = self.lr
             else:
                 rho = min(1e-2, 1 / math.sqrt(self._t))
-                alpha = max(self._rms(p), self.eps2)*rho
+                alpha = max(self._rms(p), self.eps)*rho
 
             g = p.grad
 
-            beta2t = 1.0 - math.pow(self._t, -self.beta2_decay)
-            u = g.square() + self.eps2
+            if self.centralize and sum(g.shape) > 1:
+                g.add_(g.mean(dim=tuple(range(1, len(g.shape))), keepdim=True))
+
+            beta_t = 1.0 - math.pow(self._t, -self.beta_decay)
+            u = g.square() + self.eps
 
             if len(p.shape) == 2:
-                p._c.mul_(beta2t).add_(u.mean(dim=0), alpha=1-beta2t)
+                c = u.mean(dim=0)
+                p._c.addcmul_((p._c - c).sign(), c, alpha=-(1-beta_t))
 
                 m = p._c.rsqrt().broadcast_to(g.shape)
                 m = m * g
             else:
-                p._v.mul_(beta2t).add_(u, alpha=1-beta2t)
+                p._v.addcmul_((p._c - u).sign(), u, alpha=-(1-beta_t))
                 m = p._v.rsqrt() * g
 
             p_norm = p.norm()
