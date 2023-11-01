@@ -85,6 +85,7 @@ class OverlapSGD(OverlapOptimizer):
 @dataclass
 class Adalite(OverlapOptimizer):
     eps: float = 1e-5
+    lambda: float = 0.01
     beta_decay: float = 0.8
     centralize: bool = True
     _t: int = 0
@@ -136,6 +137,8 @@ class Adalite(OverlapOptimizer):
 
             if p_norm != 0 and g_norm != 0:
                 m.mul_(p_norm / g_norm)
+
+            m.add_(p - p/p_norm, alpha=self.lambda)
 
             p.add_(m, alpha=-alpha)
             p.grad = None
