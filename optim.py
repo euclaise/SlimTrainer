@@ -84,8 +84,7 @@ class OverlapSGD(OverlapOptimizer):
 
 @dataclass
 class Adalite(OverlapOptimizer):
-    eps1: float = 0.
-    eps2: float = 1e-2
+    eps: float = 1e-5
     beta_decay: float = 0.8
     centralize: bool = True
     _t: int = 0
@@ -119,16 +118,18 @@ class Adalite(OverlapOptimizer):
                 g.add_(g.mean(dim=tuple(range(1, len(g.shape))), keepdim=True))
 
             beta_t = 1.0 - math.pow(self._t, -self.beta_decay)
-            u = g.square() + self.eps1
+            u = g.square()
 
             if len(p.shape) == 2:
                 u.mul_(1-beta2t).add_(p._c.unsqueeze(0).broadcast_to(g.shape), alpha=beta2t)
+                u.add_(self.eps)
                 p._v = u.mean(dim=0)
             else:
                 u.mul_(1-beta2t).add_(p._v, alpha=beta2t)
+                u.add_(self.eps)
                 p._c = u
 
-            m = 1 / (u.sqrt() + self.eps2) * g
+            m = u.rsqrt() * g
 
             p_norm = p.norm()
             g_norm = g.norm()
