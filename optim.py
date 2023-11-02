@@ -122,11 +122,11 @@ class Adalite(OverlapOptimizer):
             u = g.square()
 
             if len(p.shape) == 2:
-                u.mul_(1-beta2t).add_(p._c.unsqueeze(0).broadcast_to(g.shape), alpha=beta2t)
+                u.mul_(1-beta_t).add_(p._c.unsqueeze(0).broadcast_to(g.shape), alpha=beta_t)
                 u.add_(self.eps)
                 p._v = u.mean(dim=0)
             else:
-                u.mul_(1-beta2t).add_(p._v, alpha=beta2t)
+                u.mul_(1-beta_t).add_(p._v, alpha=beta_t)
                 u.add_(self.eps)
                 p._c = u
 
