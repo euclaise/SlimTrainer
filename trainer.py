@@ -36,6 +36,7 @@ class SlimTrainer():
     def compute_loss(self, labels, **inputs):
         outputs = self.model(**inputs)
         if self.mixce:
+            assert not self.encdec
             labels = labels.clone()
 
             logits = outputs.logits.log_softmax(-1)
