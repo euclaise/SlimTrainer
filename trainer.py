@@ -93,7 +93,7 @@ class SlimTrainer():
                     loss = self.compute_loss(
                         labels=batch['labels'].cuda(),
                         input_ids = batch['input_ids'].cuda(),
-                        decoder_input_ids = None if not self.encdec else batch['decoder_input_ids'].cuda() if batch['decoder_input_ids'] is not None else None
+                        decoder_input_ids = None if not self.encdec else batch['decoder_input_ids'].cuda() if 'decoder_input_ids' in batch else None
                     )
 
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
