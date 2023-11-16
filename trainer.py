@@ -31,6 +31,7 @@ class SlimTrainer():
     freeze_embeds: bool = True
     mixce: bool = False # https://arxiv.org/abs/2305.16958
     mixce_ratio: float = 0.5
+    encdec: bool = False # Encoder-decoder model
 
     def compute_loss(self, labels, **inputs):
         outputs = self.model(**inputs)
@@ -79,18 +80,19 @@ class SlimTrainer():
 
             loss_avg = 0
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
-                labels = batch['labels'].cuda()
                 if self.neft:
+                    assert not self.encdec
                     embeds = embedding_layer(batch['input_ids'].cuda())
                     noise = (torch.rand_like(embeds) - 0.5) * 10/math.sqrt(512 * embeds.shape[-1])
                     loss = self.compute_loss(
-                        labels=labels,
+                        labels=batch['labels'].cuda(),
                         inputs_embeds = embeds + noise
                     )
                 else:
                     loss = self.compute_loss(
-                        labels=labels,
-                        input_ids = batch['input_ids'].cuda()
+                        labels=batch['labels'].cuda(),
+                        input_ids = batch['input_ids'].cuda(),
+                        decoder_input_ids = None if not self.encdec else batch['decoder_input_ids'].cuda()
                     )
 
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
