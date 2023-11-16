@@ -34,9 +34,11 @@ class SlimTrainer():
     encdec: bool = False # Encoder-decoder model
 
     def compute_loss(self, labels, **inputs):
+        if self.encdec:
+            return self.model(labels=labels, **inputs).loss
+
         outputs = self.model(**inputs)
         if self.mixce:
-            assert not self.encdec
             labels = labels.clone()
 
             logits = outputs.logits.log_softmax(-1)
