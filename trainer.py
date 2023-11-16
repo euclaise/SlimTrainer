@@ -66,7 +66,7 @@ class SlimTrainer():
 
         total_batches = len(loader)
 
-        if self.freeze_embeds:
+        if self.freeze_embeds and not self.encdec:
             self.model.get_input_embeddings().requires_grad = False
             self.model.get_output_embeddings().requires_grad = False
 
