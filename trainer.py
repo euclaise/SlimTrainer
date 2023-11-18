@@ -37,7 +37,7 @@ class SlimTrainer():
         if self.encdec:
             return self.model(labels=labels, **inputs).loss
 
-        outputs = self.model(**inputs)
+        outputs = self.model(labels=labels, **inputs)
         if self.mixce:
             labels = labels.clone()
 
