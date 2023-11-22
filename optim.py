@@ -26,38 +26,6 @@ class OverlapOptimizer:
         pass
 
 @dataclass
-class OverlapLion(OverlapOptimizer):
-    beta1: float = 0.9
-    beta2: float = 0.99
-
-    def prepare(self, p):
-        return
-
-    def step(self, loss, lr):
-        self.lr = lr
-        loss.backward()
-
-    def prepare(self, p):
-        p._m = torch.zeros_like(p)
-
-    def hook(self, p):
-        ag = p.view_as(p).grad_fn.next_functions[0][0]
-        p._acc_grads = [ag]
-
-        @torch.no_grad()
-        def gf(*_):
-            p.data.mul_(1 - self.lr * self.decay)
-
-            update = p._m.clone().mul_(self.beta1).add_(p.grad, alpha=1 - self.beta1).sign_()
-            p.add_(update, alpha=-self.lr)
-
-            p._m.mul_(self.beta2).add_(g, alpha=1 - self.beta2)
-
-            p.grad = None
-
-        ag.register_hook(gf)
-
-@dataclass
 class OverlapSGD(OverlapOptimizer):
     sign: bool = False
 
@@ -88,6 +56,8 @@ class Adalite(OverlapOptimizer):
     Lambda: float = 0.01
     beta_decay: float = 0.8
     centralize: bool = True
+    momentum: bool = False
+    momentum_beta: float = 0.9
     _t: int = 0
 
     def step(self, loss, lr=None):
@@ -97,13 +67,12 @@ class Adalite(OverlapOptimizer):
 
     def prepare(self, p):
         if len(p.shape) == 2:
-            n = p.shape[0]
-            m = p.shape[1]
-
             p._c = torch.zeros(p.shape[1], device=p.device, dtype=p.dtype)
-
         else:
             p._v = torch.zeros_like(p)
+
+        if self.momentum:
+            p._m = torch.zeros_like(p)
 
     def hook(self, p):
         ag = p.view_as(p).grad_fn.next_functions[0][0]
@@ -139,6 +108,10 @@ class Adalite(OverlapOptimizer):
                 m.mul_(p_norm / g_norm)
 
             m.add_(p - p/p_norm, alpha=self.Lambda)
+
+            if self.momentum:
+                p._m.mul_(self.momentum_beta).add_(m, alpha=1-self.momentum_beta)
+                m = p._m
 
             p.add_(m, alpha=-alpha)
             p.grad = None
