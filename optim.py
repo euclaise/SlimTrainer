@@ -52,10 +52,11 @@ class OverlapSGD(OverlapOptimizer):
 
 @dataclass
 class Adalite(OverlapOptimizer):
-    eps: float = 1e-4
-    Lambda: float = 0.01
+    eps: float = 1e-5
+    Lambda: float = 0.01 # Akin to weight-decay
     beta_decay: float = 0.8
     centralize: bool = True
+    use_rms: bool = True
     momentum: bool = False
     momentum_beta: float = 0.9
     _t: int = 0
@@ -100,6 +101,9 @@ class Adalite(OverlapOptimizer):
                 p._v = u
 
             m = u.rsqrt() * g
+
+            if self.use_rms:
+                m.div_(max(1.0, m.square().mean().sqrt()))
 
             p_norm = p.norm()
             g_norm = g.norm()
