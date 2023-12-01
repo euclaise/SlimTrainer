@@ -85,7 +85,7 @@ class Adalite(OverlapOptimizer):
             g = p.grad
 
             if self.centralize and sum(g.shape) > 1:
-                g.add_(g.mean(dim=tuple(range(1, len(g.shape))), keepdim=True))
+                g.sub_(g.mean(dim=tuple(range(1, len(g.shape))), keepdim=True))
 
             beta_t = 1.0 - math.pow(self._t, -self.beta_decay)
             u = g.square()
@@ -106,8 +106,7 @@ class Adalite(OverlapOptimizer):
 
             if p_norm != 0 and g_norm != 0:
                 m.mul_(p_norm / g_norm)
-
-            m.add_(p - p/p_norm, alpha=self.Lambda)
+                m.add_(p - p/p_norm, alpha=self.Lambda)
 
             if self.momentum:
                 p._m.mul_(self.momentum_beta).add_(m, alpha=1-self.momentum_beta)
