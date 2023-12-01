@@ -52,7 +52,7 @@ class OverlapSGD(OverlapOptimizer):
 
 @dataclass
 class Adalite(OverlapOptimizer):
-    eps: float = 1e-5
+    eps: float = 1e-4
     Lambda: float = 0.01
     beta_decay: float = 0.8
     centralize: bool = True
