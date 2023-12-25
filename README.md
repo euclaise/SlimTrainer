@@ -13,3 +13,39 @@ Note that long sequence lengths require more memory. A sequence length of 512 at
 An implementation of [Sigma reparameterization](https://proceedings.mlr.press/v202/zhai23a/zhai23a.pdf) and a naive version of embedding quantization are also present in this repository. Apple found that sigma parameterization was sufficient to allow them to pretrain a transformer with SGD+momentum. Unfortunately, momentum alone takes too much memory, and I have not seen any improvement for finetuning using sigma reparameterization with non-momentum SGD.
 
 The techniques used in this repository should also help with training in less constrained settings, but I haven't tested it.  In such contexts, with a sufficiently large batch size, the `OverlapLion` optimizer may be useable.
+
+
+## Example code
+
+```
+# ...
+# Assume the following variables exist:
+# - ds: Dataset
+# - TOTAL_STEPS: step count
+# - model: Some autoregressive huggingface model
+# - dc: Some data collator
+
+from SlimTrainer import (
+    SlimTrainer,
+    Adalite,
+    CosineDecayWithWarmup,
+    SlimTrainer
+)
+
+optim = Adalite()
+scheduler = CosineDecayWithWarmup(optim, total_steps=TOTAL_STEPS, warmup_steps=TOTAL_STEPS*0.2, max_lr=2e-5)
+
+trainer = SlimTrainer(
+    model,
+    optim,
+    scheduler,
+    train_data=ds,
+    epochs=1,
+    batch_size=1,
+    data_collator=dc
+)
+
+trainer.train()
+
+model.save_pretrained("result")
+```

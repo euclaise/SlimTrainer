@@ -18,11 +18,11 @@ from .lr import LRScheduler
 class SlimTrainer():
     model: PreTrainedModel
     optim: OverlapOptimizer
+    scheduler: LRScheduler
     train_data: Dataset
     epochs: int
     data_collator: Callable
     batch_size: int
-    scheduler: LRScheduler
     wandb_entity: Optional[str]
     wandb_project: Optional[str]
     wandb_name: Optional[str]
