@@ -43,8 +43,6 @@ class DPOLoss(RankLoss):
         labels_w: torch.LongTensor,
         labels_l: Torch.LongTensor
     ):
-
-
         logp_w_ref = self.logprob(logits_w_ref, lablels_w)
         logp_w_p = self.logprob(logits_w_p, lablels_w)
 
@@ -137,12 +135,6 @@ class cDPOLoss(DPOLoss):
         labels_w: torch.LongTensor,
         labels_l: Torch.LongTensor
     ):
-        if torch.rand() < self.eps:
-            tmp = logits_w_ref, logits_w_p, labels_w
-            logits_w_ref, logits_w_p, labels_w = logits_l_ref, logits_l_p, labels_l
-            logits_l_ref, logits_l_p, labels_l = tmp
-
-
         logp_w_ref = self.logprob(logits_w_ref, lablels_w)
         logp_w_p = self.logprob(logits_w_p, lablels_w)
 
