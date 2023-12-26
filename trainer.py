@@ -28,12 +28,13 @@ class SlimTrainer():
     wandb_name: Optional[str]
     report_steps: int = 8
     neft: bool = False # https://arxiv.org/abs/2310.05914
+    neft_alpha: int = 5
     freeze_embeds: bool = True
     mixce: bool = False # https://arxiv.org/abs/2305.16958
     mixce_ratio: float = 0.5
     encdec: bool = False # Encoder-decoder model
 
-    def compute_loss(self, labels, **inputs):
+    def compute_loss(self, labels, meta, **inputs):
         if self.encdec:
             return self.model(labels=labels, **inputs).loss
 
@@ -86,16 +87,18 @@ class SlimTrainer():
             for batch_idx, batch in tenumerate(loader, desc="Batch"):
                 if self.neft:
                     assert not self.encdec
-                    embeds = embedding_layer(batch['input_ids'].cuda())
-                    noise = (torch.rand_like(embeds) - 0.5) * 10/math.sqrt(512 * embeds.shape[-1])
+                    embeds = embedding_layer(batch['input_ids'].to(self.model.device))
+                    noise = (torch.rand_like(embeds) - 0.5) * self.neft_alpha/math.sqrt(512 * embeds.shape[-1])
                     loss = self.compute_loss(
-                        labels=batch['labels'].cuda(),
-                        inputs_embeds = embeds + noise
+                        labels=batch['labels'].to(self.model.device),
+                        inputs_embeds=embeds + noise,
+                        meta=batch.get('meta', None)
                     )
                 else:
                     loss = self.compute_loss(
-                        labels=batch['labels'].cuda(),
-                        input_ids = batch['input_ids'].cuda(),
+                        labels=batch['labels'].to(self.model.device),
+                        input_ids=batch['input_ids'].to(self.model.device)
+                        meta=batch.get('meta', None)
                     )
 
                 self.optim.step(loss, self.scheduler.get_lr()) # Backwards pass is mixed with optimization pass
