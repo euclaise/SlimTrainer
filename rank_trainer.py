@@ -5,9 +5,11 @@ import torch
 from torch import nn
 from typing import Dict
 
-def logmeanexp(x, dim=-1):
+def normalized_denom(x, dim=-1):
     x_max, _ = x.max(dim=dim)
-    return (x - x_max).exp().mean(dim=dim).log() + x_max
+    xe = (x - x_max).exp()
+
+    return (x[:, 0] + x[:, 1:]).mean(dim=dim).log() + x_max
 
 def logprob(self, logits: torch.Tensor, labels: torch.LongTensor, normalize=False):
     labels = labels.clone()
@@ -57,7 +59,7 @@ class PROTrainer(SlimTrainer):
             den_lps = torch.where(meta['mask'][:, i:], den_lps, float('-inf'))
 
             if self.normalize_categories:
-                logdenom = logmeanexp(den_lps, dim=1)
+                logdenom = normalized_denom(den_lps, dim=1)
             else:
                 logdenom = torch.logsumexp(den_lps, dim=1)
 
