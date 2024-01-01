@@ -9,7 +9,7 @@ def normalized_denom(x, dim=-1):
     x_max, _ = x.max(dim=dim)
     xe = (x - x_max).exp()
 
-    return (x[:, 0] + x[:, 1:]).mean(dim=dim).log() + x_max
+    return (x[:, 0] + x[:, 1:].mean(dim=dim)).log() + x_max
 
 def logprob(self, logits: torch.Tensor, labels: torch.LongTensor, normalize=False):
     labels = labels.clone()
